@@ -133,6 +133,7 @@
 
                 <!-- Stats grid - Thu nhỏ và đặt dưới trang bìa -->
                 <div class="stats-grid">
+                  <!-- Tổng học sinh -->
                   <div class="stat-card">
                     <div class="stat-card-flex">
                       <div class="stat-card-left">
@@ -142,89 +143,90 @@
                           <span class="stat-unit">HS</span>
                         </div>
                       </div>
-
                       <div class="stat-icon temp-icon stat-card-right">
-                        <img src="data/nhom2.png" alt="Nhóm 2" />
+                        <img src="data/nhom2.png" alt="Tổng" />
                       </div>
                     </div>
                   </div>
 
+                  <!-- Dân thường -->
                   <div class="stat-card">
                     <div class="stat-card-flex">
                       <div class="stat-card-left">
-                        <h3>Dân</h3>
+                        <h3>Dân thường</h3>
                         <div class="stat-card-group">
-                          <span class="stat-value" id="totalStudents">0</span>
+                          <span class="stat-value" id="commonStudents">0</span>
                           <span class="stat-unit">HS</span>
                         </div>
                       </div>
-
                       <div class="stat-icon temp-icon stat-card-right">
-                        <img src="data/nhom2.png" alt="Nhóm 2" />
+                        <img src="data/dan.png" alt="Dân thường" />
                       </div>
                     </div>
                   </div>
 
+                  <!-- Lính -->
                   <div class="stat-card">
                     <div class="stat-card-flex">
                       <div class="stat-card-left">
                         <h3>Lính</h3>
                         <div class="stat-card-group">
-                          <span class="stat-value" id="totalStudents">0</span>
+                          <span class="stat-value" id="soldierStudents">0</span>
                           <span class="stat-unit">HS</span>
                         </div>
                       </div>
-
                       <div class="stat-icon temp-icon stat-card-right">
-                        <img src="data/nhom2.png" alt="Nhóm 2" />
+                        <img src="data/linh.png" alt="Lính" />
                       </div>
                     </div>
                   </div>
 
+                  <!-- Quan -->
                   <div class="stat-card">
                     <div class="stat-card-flex">
                       <div class="stat-card-left">
                         <h3>Quan</h3>
                         <div class="stat-card-group">
-                          <span class="stat-value" id="totalStudents">0</span>
+                          <span class="stat-value" id="officialStudents"
+                            >0</span
+                          >
                           <span class="stat-unit">HS</span>
                         </div>
                       </div>
-
                       <div class="stat-icon temp-icon stat-card-right">
-                        <img src="data/nhom2.png" alt="Nhóm 2" />
+                        <img src="data/quan.png" alt="Quan" />
                       </div>
                     </div>
                   </div>
 
+                  <!-- Tể tướng -->
                   <div class="stat-card">
                     <div class="stat-card-flex">
                       <div class="stat-card-left">
-                        <h3>Tể Tướng</h3>
+                        <h3>Tể tướng</h3>
                         <div class="stat-card-group">
-                          <span class="stat-value" id="totalStudents">0</span>
+                          <span class="stat-value" id="primeStudents">0</span>
                           <span class="stat-unit">HS</span>
                         </div>
                       </div>
-
                       <div class="stat-icon temp-icon stat-card-right">
-                        <img src="data/nhom2.png" alt="Nhóm 2" />
+                        <img src="data/tetuong.png" alt="Tể tướng" />
                       </div>
                     </div>
                   </div>
 
+                  <!-- Vua -->
                   <div class="stat-card">
                     <div class="stat-card-flex">
                       <div class="stat-card-left">
                         <h3>Vua</h3>
                         <div class="stat-card-group">
-                          <span class="stat-value" id="totalStudents">0</span>
+                          <span class="stat-value" id="kingStudents">0</span>
                           <span class="stat-unit">HS</span>
                         </div>
                       </div>
-
                       <div class="stat-icon temp-icon stat-card-right">
-                        <img src="data/nhom2.png" alt="Nhóm 2" />
+                        <img src="data/vua.png" alt="Vua" />
                       </div>
                     </div>
                   </div>
@@ -315,7 +317,10 @@
                 </button>
 
                 <div id="groupBulkControls">
-                  <button class="btnSub" onclick="subtractPointsFromSelectedGroups()">
+                  <button
+                    class="btnSub"
+                    onclick="subtractPointsFromSelectedGroups()"
+                  >
                     -
                   </button>
                   <input type="number" id="groupBulkPoints" value="1" min="1" />
@@ -348,7 +353,7 @@
         <!-- Tính năng -->
         <div id="features-tab" class="tab-content">
           <div class="devices-section">
-            <h3 style="color: #4a5568; margin-bottom: 20px; font-size: 1.1rem">
+            <h3 style="color: #4a5568; margin-bottom: 20px; font-size: 1.5rem">
               Tính năng bổ trợ
             </h3>
             <div class="features-grid">
@@ -373,8 +378,8 @@
 
         <!-- Cài đặt -->
         <div id="settings-tab" class="tab-content">
-          <div class="devices-section">
-            <h3 style="color: #4a5568; margin-bottom: 20px; font-size: 1.1rem">
+          <div class="devices-section settings" >
+            <h3 style="color: #4a5568; margin-bottom: 20px; font-size: 1.5rem">
               Cài đặt và quản lý
             </h3>
             <div
@@ -418,7 +423,7 @@
                       font-weight: 700;
                       margin-bottom: 10px;
                       color: #28a745;
-                      font-size: 1.1rem;
+                      font-size: 1.5rem;
                     "
                   >
                     ✅ Điểm Cộng:
@@ -460,7 +465,7 @@
                       font-weight: 700;
                       margin-bottom: 10px;
                       color: #dc3545;
-                      font-size: 1.1rem;
+                      font-size: 1.5rem;
                     "
                   >
                     ❌ Điểm Trừ:
@@ -506,7 +511,7 @@
                     cursor: pointer;
                     font-weight: bold;
                     width: 100%;
-                    font-size: 1.1rem;
+                    font-size: 1.5rem;
                   "
                 >
                   💾 Lưu tất cả
@@ -682,7 +687,7 @@
                   <div
                     style="
                       color: #ff6f00;
-                      font-size: 1.1rem;
+                      font-size: 1.5rem;
                       font-weight: 700;
                       margin-bottom: 12px;
                     "
@@ -734,7 +739,7 @@
                 margin-bottom: 20px;
               "
             >
-              <h3 style="color: #4a5568; font-size: 1.1rem; margin: 0">
+              <h3 style="color: #4a5568; font-size: 1.5rem; margin: 0">
                 🎁 Đổi quà - Vật phẩm theo cấp bậc
               </h3>
               <div style="display: flex; gap: 10px">
@@ -793,7 +798,7 @@
                   margin-bottom: 20px;
                 "
               >
-                <h4 style="margin: 0; color: #333; font-size: 1.1rem">
+                <h4 style="margin: 0; color: #333; font-size: 1.5rem">
                   📝 Chỉnh sửa thông tin vật phẩm
                 </h4>
                 <button
@@ -971,7 +976,7 @@
         <!-- Báo cáo -->
         <div id="reports-tab" class="tab-content">
           <div class="devices-section">
-            <h3 style="color: #4a5568; margin-bottom: 20px; font-size: 1.1rem">
+            <h3 style="color: #4a5568; margin-bottom: 20px; font-size: 1.5rem">
               Báo cáo và thống kê
             </h3>
             <div
@@ -1153,7 +1158,7 @@
             margin-bottom: 10px;
           "
         >
-          <div style="font-weight: 800; font-size: 1.1rem">Cài đặt</div>
+          <div style="font-weight: 800; font-size: 1.5rem">Cài đặt</div>
           <button
             class="chip-btn"
             onclick="closeSettings()"
@@ -1272,7 +1277,7 @@
                   font-weight: 700;
                   margin-bottom: 10px;
                   color: #28a745;
-                  font-size: 1.1rem;
+                  font-size: 1.5rem;
                 "
               >
                 ✅ Điểm Cộng:
@@ -1313,7 +1318,7 @@
                   font-weight: 700;
                   margin-bottom: 10px;
                   color: #dc3545;
-                  font-size: 1.1rem;
+                  font-size: 1.5rem;
                 "
               >
                 ❌ Điểm Trừ:
@@ -1358,7 +1363,7 @@
                 cursor: pointer;
                 font-weight: bold;
                 width: 100%;
-                font-size: 1.1rem;
+                font-size: 1.5rem;
               "
             >
               💾 Lưu tất cả
@@ -1368,192 +1373,53 @@
       </div>
     </div>
 
-    <div
-      id="addGroupModal"
-      style="
-        position: fixed;
-        inset: 0;
-        display: none;
-        align-items: center;
-        justify-content: center;
-        background: rgba(0, 0, 0, 0.25);
-        z-index: 2000;
-      "
-    >
-      <div
-        style="
-          background: #fff;
-          width: 600px;
-          max-width: 95vw;
-          border-radius: 16px;
-          padding: 20px;
-          box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-        "
-      >
-        <div
-          style="
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-          "
-        >
-          <div style="font-weight: 800; font-size: 1.2rem">Thêm nhóm mới</div>
-          <button
-            onclick="closeAddGroupModal()"
-            style="
-              background: #ff6b6b;
-              color: #fff;
-              border: none;
-              padding: 8px 12px;
-              border-radius: 12px;
-              cursor: pointer;
-            "
-          >
-            Đóng
-          </button>
+    <div id="addGroupModal" class="addNewGroup">
+      <div class="modal-content">
+        <div class="modal-header">
+          <div class="modal-title">Thêm nhóm mới</div>
+          <button class="btn-close" onclick="closeAddGroupModal()">Đóng</button>
         </div>
-        <div style="margin-bottom: 20px">
-          <label style="font-weight: 700; margin-bottom: 8px; display: block"
-            >Tên nhóm:</label
-          >
+
+        <div class="modal-body">
+          <label class="label">Tên nhóm:</label>
           <textarea
             id="newGroupName"
             rows="6"
             placeholder="Mỗi dòng 1 tên nhóm"
-            style="
-              width: 100%;
-              padding: 12px;
-              border-radius: 12px;
-              border: 1px solid #eee;
-              font-size: 1rem;
-              resize: vertical;
-            "
+            class="textarea"
           ></textarea>
         </div>
-        <div style="display: flex; gap: 10px; justify-content: flex-end">
-          <button
-            onclick="closeAddGroupModal()"
-            style="
-              background: #ccc;
-              color: #333;
-              border: none;
-              padding: 10px 20px;
-              border-radius: 12px;
-              cursor: pointer;
-            "
-          >
-            Hủy
-          </button>
-          <button
-            onclick="createNewGroup()"
-            style="
-              background: linear-gradient(45deg, #6bcf7f, #4ecdc4);
-              color: #fff;
-              border: none;
-              padding: 10px 20px;
-              border-radius: 12px;
-              cursor: pointer;
-            "
-          >
+
+        <div class="modal-footer">
+          <button class="btn-cancel" onclick="closeAddGroupModal()">Hủy</button>
+          <button class="btn-create" onclick="createNewGroup()">
             Tạo nhóm
           </button>
         </div>
       </div>
     </div>
 
-    <div
-      id="deleteGroupModal"
-      style="
-        position: fixed;
-        inset: 0;
-        display: none;
-        align-items: center;
-        justify-content: center;
-        background: rgba(0, 0, 0, 0.25);
-        z-index: 2000;
-      "
-    >
-      <div
-        style="
-          background: #fff;
-          width: 500px;
-          max-width: 95vw;
-          border-radius: 16px;
-          padding: 20px;
-          box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-        "
-      >
-        <div
-          style="
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-          "
-        >
-          <div style="font-weight: 800; font-size: 1.2rem">Xóa nhóm</div>
-          <button
-            onclick="closeDeleteGroupModal()"
-            style="
-              background: #ff6b6b;
-              color: #fff;
-              border: none;
-              padding: 8px 12px;
-              border-radius: 12px;
-              cursor: pointer;
-            "
-          >
-            Đóng
-          </button>
+    <div id="deleteGroupModal" class="deleteCurrentGroup">
+      <div class="modal-content">
+        <div class="modal-header">
+          <div class="modal-title">Xóa nhóm</div>
+          <button class="btn-close" onclick="closeDeleteGroupModal()">Đóng</button>
         </div>
-        <div style="margin-bottom: 20px">
-          <label style="font-weight: 700; margin-bottom: 8px; display: block"
-            >Chọn nhóm để xóa:</label
-          >
-          <select
-            id="deleteGroupSelect"
-            style="
-              width: 100%;
-              padding: 12px;
-              border-radius: 12px;
-              border: 1px solid #eee;
-              font-size: 1rem;
-            "
-          >
+
+        <div class="modal-body">
+          <label class="label">Chọn nhóm để xóa:</label>
+          <select id="deleteGroupSelect" class="select">
             <option value="">Chọn nhóm...</option>
           </select>
         </div>
-        <div style="display: flex; gap: 10px; justify-content: flex-end">
-          <button
-            onclick="closeDeleteGroupModal()"
-            style="
-              background: #ccc;
-              color: #333;
-              border: none;
-              padding: 10px 20px;
-              border-radius: 12px;
-              cursor: pointer;
-            "
-          >
-            Hủy
-          </button>
-          <button
-            onclick="deleteSelectedGroup()"
-            style="
-              background: linear-gradient(45deg, #ff6b6b, #ff8e8e);
-              color: #fff;
-              border: none;
-              padding: 10px 20px;
-              border-radius: 12px;
-              cursor: pointer;
-            "
-          >
-            Xóa nhóm
-          </button>
+
+        <div class="modal-footer">
+          <button class="btn-cancel" onclick="closeDeleteGroupModal()">Hủy</button>
+          <button class="btn-delete" onclick="deleteSelectedGroup()">Xóa nhóm</button>
         </div>
       </div>
     </div>
+
 
     <!-- Modal Timer -->
     <div
@@ -1632,7 +1498,7 @@
                 padding: 15px 30px;
                 border-radius: 12px;
                 cursor: pointer;
-                font-size: 1.1rem;
+                font-size: 1.5rem;
                 font-weight: 600;
               "
             >
@@ -1647,7 +1513,7 @@
                 padding: 15px 30px;
                 border-radius: 12px;
                 cursor: pointer;
-                font-size: 1.1rem;
+                font-size: 1.5rem;
                 font-weight: 600;
               "
             >
@@ -1662,7 +1528,7 @@
                 padding: 15px 30px;
                 border-radius: 12px;
                 cursor: pointer;
-                font-size: 1.1rem;
+                font-size: 1.5rem;
                 font-weight: 600;
               "
             >
@@ -1675,7 +1541,7 @@
                 font-weight: 700;
                 margin-bottom: 12px;
                 display: block;
-                font-size: 1.1rem;
+                font-size: 1.5rem;
               "
               >Thời gian đếm ngược:</label
             >
@@ -1709,7 +1575,7 @@
                     border-radius: 8px;
                     border: 1px solid #eee;
                     text-align: center;
-                    font-size: 1.1rem;
+                    font-size: 1.5rem;
                   "
                 />
               </div>
@@ -1735,7 +1601,7 @@
                     border-radius: 8px;
                     border: 1px solid #eee;
                     text-align: center;
-                    font-size: 1.1rem;
+                    font-size: 1.5rem;
                   "
                 />
               </div>
@@ -1802,7 +1668,7 @@
                 font-weight: 700;
                 margin-bottom: 12px;
                 display: block;
-                font-size: 1.1rem;
+                font-size: 1.5rem;
               "
               >Chọn số lượng (1-5):</label
             >
@@ -1812,7 +1678,7 @@
                 padding: 12px 20px;
                 border-radius: 12px;
                 border: 1px solid #eee;
-                font-size: 1.1rem;
+                font-size: 1.5rem;
                 width: 200px;
               "
             >
@@ -1957,7 +1823,7 @@
                 padding: 15px 30px;
                 border-radius: 12px;
                 cursor: pointer;
-                font-size: 1.1rem;
+                font-size: 1.5rem;
                 font-weight: 600;
               "
             >
@@ -1972,7 +1838,7 @@
                 padding: 15px 30px;
                 border-radius: 12px;
                 cursor: pointer;
-                font-size: 1.1rem;
+                font-size: 1.5rem;
                 font-weight: 600;
               "
             >
@@ -2002,7 +1868,7 @@
                   color: #333;
                   min-width: 120px;
                   text-align: left;
-                  font-size: 1.1rem;
+                  font-size: 1.5rem;
                 "
                 >Độ nhạy:</label
               >
@@ -2030,7 +1896,7 @@
                   color: #4a5568;
                   min-width: 150px;
                   text-align: right;
-                  font-size: 1.1rem;
+                  font-size: 1.5rem;
                 "
                 >1.0x (≈100dB)</span
               >
@@ -2092,7 +1958,7 @@
               padding: 15px 30px;
               border-radius: 12px;
               cursor: pointer;
-              font-size: 1.1rem;
+              font-size: 1.5rem;
               font-weight: 600;
             "
           >
@@ -2836,5 +2702,7 @@
     </div>
 
     <script src="js/script.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/actions.js"></script>
   </body>
 </html>

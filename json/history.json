@@ -1,0 +1,47 @@
+[
+    {
+        "studentId": 5,
+        "studentName": "a",
+        "date": "2025-12-11T10:01:22.628Z",
+        "points": 1,
+        "total": 1,
+        "type": "individual",
+        "recordId": "1765447282628_7649_5"
+    },
+    {
+        "studentId": 5,
+        "studentName": "a",
+        "date": "2025-12-11T10:01:23.676Z",
+        "points": 1,
+        "total": 2,
+        "type": "individual",
+        "recordId": "1765447283676_9555_5"
+    },
+    {
+        "studentId": 5,
+        "studentName": "a",
+        "date": "2025-12-11T10:01:24.769Z",
+        "points": -1,
+        "total": 1,
+        "type": "individual",
+        "recordId": "1765447284769_35_5"
+    },
+    {
+        "studentId": 5,
+        "studentName": "a",
+        "date": "2025-12-11T10:10:27.972Z",
+        "points": 1,
+        "total": 2,
+        "type": "individual",
+        "recordId": "1765447827972_8095_5"
+    },
+    {
+        "studentId": 5,
+        "studentName": "a",
+        "date": "2025-12-11T10:10:29.111Z",
+        "points": -1,
+        "total": 1,
+        "type": "individual",
+        "recordId": "1765447829111_6321_5"
+    }
+]

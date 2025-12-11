@@ -1,0 +1,191 @@
+{
+    "students": [
+        {
+            "id": 1,
+            "name": "Nguyễn Văn A",
+            "points": 0
+        },
+        {
+            "id": 2,
+            "name": "Trần Thị B",
+            "points": 0
+        },
+        {
+            "id": 3,
+            "name": "Lê Văn C",
+            "points": 0
+        },
+        {
+            "id": 4,
+            "name": "test",
+            "points": 0
+        },
+        {
+            "id": 5,
+            "name": "a",
+            "points": 1
+        },
+        {
+            "id": 6,
+            "name": "new",
+            "points": 0
+        },
+        {
+            "id": 7,
+            "name": "new student",
+            "points": 0
+        }
+    ],
+    "levels": [
+        {
+            "name": "Dân thường",
+            "points": 0,
+            "icon": "👤",
+            "color": "#FFCA28",
+            "multiplier": 1
+        },
+        {
+            "name": "Lính",
+            "points": 10,
+            "icon": "⚔️",
+            "color": "#FFE082",
+            "multiplier": 1.25
+        },
+        {
+            "name": "Quan",
+            "points": 25,
+            "icon": "📜",
+            "color": "#ffd93d",
+            "multiplier": 2
+        },
+        {
+            "name": "Tể tướng",
+            "points": 40,
+            "icon": "🎩",
+            "color": "#6bcf7f",
+            "multiplier": 3
+        },
+        {
+            "name": "Vua",
+            "points": 60,
+            "icon": "👑",
+            "color": "#4ecdc4",
+            "multiplier": 4
+        }
+    ],
+    "rewardItems": [
+        {
+            "level": "Dân thường",
+            "itemName": "Túi gạo",
+            "itemImage": "https://cdn-icons-png.flaticon.com/512/2771/2771432.png",
+            "description": "Túi gạo 5kg"
+        },
+        {
+            "level": "Lính",
+            "itemName": "Bộ đồ dùng học tập",
+            "itemImage": "https://cdn-icons-png.flaticon.com/512/2232/2232688.png",
+            "description": "Bộ bút viết + vở"
+        },
+        {
+            "level": "Quan",
+            "itemName": "Sách hay",
+            "itemImage": "https://cdn-icons-png.flaticon.com/512/2702/2702134.png",
+            "description": "Sách kiến thức bổ ích"
+        },
+        {
+            "level": "Tể tướng",
+            "itemName": "Phiếu quà tặng",
+            "itemImage": "https://cdn-icons-png.flaticon.com/512/3081/3081559.png",
+            "description": "Voucher 200.000đ"
+        },
+        {
+            "level": "Vua",
+            "itemName": "Học bổng",
+            "itemImage": "https://cdn-icons-png.flaticon.com/512/2331/2331941.png",
+            "description": "Học bổng toàn phần"
+        }
+    ],
+    "criteriaData": {
+        "add": [
+            {
+                "icon": "⭐",
+                "content": "Trả lời đúng",
+                "points": 1
+            },
+            {
+                "icon": "🏆",
+                "content": "Làm bài tốt",
+                "points": 2
+            },
+            {
+                "icon": "🎯",
+                "content": "Hoàn thành bài tập",
+                "points": 1
+            },
+            {
+                "icon": "💡",
+                "content": "Giơ tay phát biểu",
+                "points": 1
+            },
+            {
+                "icon": "⭐",
+                "content": "",
+                "points": 1
+            }
+        ],
+        "subtract": [
+            {
+                "icon": "❌",
+                "content": "Không làm bài",
+                "points": 1
+            },
+            {
+                "icon": "⚠️",
+                "content": "Nói chuyện",
+                "points": 1
+            },
+            {
+                "icon": "🚫",
+                "content": "Không chú ý",
+                "points": 2
+            }
+        ]
+    },
+    "listStudents": [
+        {
+            "id": 1,
+            "name": "Nguyễn Văn A",
+            "points": 0
+        },
+        {
+            "id": 2,
+            "name": "Trần Thị B",
+            "points": 0
+        },
+        {
+            "id": 3,
+            "name": "Lê Văn C",
+            "points": 0
+        },
+        {
+            "id": 4,
+            "name": "test",
+            "points": 0
+        },
+        {
+            "id": 5,
+            "name": "a",
+            "points": 1
+        },
+        {
+            "id": 6,
+            "name": "new",
+            "points": 0
+        },
+        {
+            "id": 7,
+            "name": "new student",
+            "points": 0
+        }
+    ]
+}

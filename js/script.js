@@ -1,59 +1,142 @@
-// Dữ liệu học sinh
-let students = JSON.parse(localStorage.getItem("students")) || [];
+// ==================== BIẾN TOÀN CỤC ====================
+let students = [];
+let levels = [];
+let rewardItems = [];
+let criteriaData = {};
+let listStudents = [];
+let groups = [];
+let historyLog = [];
 
-// Cấp độ và điểm cần thiết (có hệ số thưởng) + lưu chỉnh sửa
-let levels = JSON.parse(localStorage.getItem("levels")) || [
-  {
-    name: "Dân thường",
-    points: 0,
-    icon: "👤",
-    color: "#FFCA28",
-    multiplier: 1,
-  },
-  { name: "Lính", points: 10, icon: "⚔️", color: "#FFE082", multiplier: 1.25 },
-  { name: "Quan", points: 25, icon: "📜", color: "#ffd93d", multiplier: 2 },
-  { name: "Tể tướng", points: 40, icon: "🎩", color: "#6bcf7f", multiplier: 3 },
-  { name: "Vua", points: 60, icon: "👑", color: "#4ecdc4", multiplier: 4 },
-];
-function saveLevels() {
-  localStorage.setItem("levels", JSON.stringify(levels));
+// ==================== LOAD TẤT CẢ DỮ LIỆU KHI KHỞI ĐỘNG ====================
+Promise.all([
+  fetch("json/data.json?t=" + Date.now()).then((r) =>
+    r.ok
+      ? r.json()
+      : {
+          students: [],
+          levels: [],
+          rewardItems: [],
+          criteriaData: {},
+          listStudents: [],
+        }
+  ),
+
+  fetch("json/history.json?t=" + Date.now()).then((r) =>
+    r.ok ? r.json() : []
+  ),
+
+  fetch("json/groups.json?t=" + Date.now()).then((r) => {
+    if (!r.ok) {
+      console.warn("groups.json không tồn tại hoặc lỗi, dùng mảng rỗng");
+      return [];
+    }
+    return r
+      .json()
+      .then((data) => {
+        // Đảm bảo luôn là mảng, dù file có lỗi cấu trúc
+        if (Array.isArray(data)) {
+          return data;
+        } else {
+          console.warn("groups.json không phải mảng, chuyển về mảng rỗng");
+          return [];
+        }
+      })
+      .catch((parseErr) => {
+        console.error("Lỗi parse groups.json:", parseErr);
+        return [];
+      });
+  }),
+])
+  .then(([mainData, hist, grp]) => {
+    // Load data.json
+    students = mainData.students || [];
+    levels = mainData.levels || [];
+    rewardItems = mainData.rewardItems || [];
+    criteriaData = mainData.criteriaData || {};
+    listStudents = mainData.listStudents || students;
+
+    // Load history.json
+    historyLog = Array.isArray(hist) ? hist : [];
+    console.log(`Loaded history.json: ${historyLog.length} records`);
+
+    // Load groups.json – BẮT BUỘC là mảng
+    groups = Array.isArray(grp) ? grp : [];
+    console.log(`Loaded groups.json: ${groups.length} groups`);
+
+    // Render giao diện an toàn
+    renderStudents();
+    renderTopStudents();
+    renderGroupsGrid(); // Giờ groups chắc chắn là mảng → không lỗi nữa
+    renderGroupSelects?.();
+    updateHomeStats();
+    renderHistory?.(); // nếu có
+  })
+  .catch((err) => {
+    console.error("Lỗi khi load dữ liệu:", err);
+    alert("Không thể tải dữ liệu từ server. Kiểm tra file json hoặc mạng.");
+
+    // Fallback an toàn nếu Promise.all lỗi
+    groups = [];
+  });
+
+// ==================== CÁC HÀM LƯU RIÊNG BIỆT ====================
+
+// 1. Lưu học sinh + cấu hình → data.json
+function saveToJson() {
+  // Đồng bộ listStudents (nếu bạn vẫn dùng ở đâu đó)
+  listStudents = students.map((s) => ({
+    id: s.id,
+    name: s.name,
+    points: s.points,
+  }));
+
+  const data = {
+    students,
+    levels,
+    rewardItems,
+    criteriaData,
+    listStudents,
+    // Không có groups nữa
+  };
+
+  fetch("process/save_data.php", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  })
+    .then((r) => r.json())
+    .then((res) => console.log("Saved data.json:", res))
+    .catch((err) => {
+      console.error("Lỗi lưu data.json:", err);
+      alert("Không thể lưu dữ liệu học sinh!");
+    });
 }
 
-// Vật phẩm đổi quà
-let rewardItems = JSON.parse(localStorage.getItem("rewardItems")) || [
-  {
-    level: "Dân thường",
-    itemName: "Túi gạo",
-    itemImage: "https://cdn-icons-png.flaticon.com/512/2771/2771432.png",
-    description: "Túi gạo 5kg",
-  },
-  {
-    level: "Lính",
-    itemName: "Bộ đồ dùng học tập",
-    itemImage: "https://cdn-icons-png.flaticon.com/512/2232/2232688.png",
-    description: "Bộ bút viết + vở",
-  },
-  {
-    level: "Quan",
-    itemName: "Sách hay",
-    itemImage: "https://cdn-icons-png.flaticon.com/512/2702/2702134.png",
-    description: "Sách kiến thức bổ ích",
-  },
-  {
-    level: "Tể tướng",
-    itemName: "Phiếu quà tặng",
-    itemImage: "https://cdn-icons-png.flaticon.com/512/3081/3081559.png",
-    description: "Voucher 200.000đ",
-  },
-  {
-    level: "Vua",
-    itemName: "Học bổng",
-    itemImage: "https://cdn-icons-png.flaticon.com/512/2331/2331941.png",
-    description: "Học bổng toàn phần",
-  },
-];
-function saveRewardItems() {
-  localStorage.setItem("rewardItems", JSON.stringify(rewardItems));
+// 2. Lưu nhóm → groups.json
+function saveGroups() {
+  fetch("process/save_groups.php", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(groups),
+  })
+    .then((r) => r.json())
+    .then((res) => console.log("Saved groups.json:", res))
+    .catch((err) => {
+      console.error("Lỗi lưu groups.json:", err);
+      alert("Không thể lưu danh sách nhóm!");
+    });
+}
+
+// 3. Lưu lịch sử điểm → history.json
+function saveHistoryToFile() {
+  fetch("process/save_history.php", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(historyLog),
+  })
+    .then((r) => r.json())
+    .then((res) => console.log("Saved history.json:", res))
+    .catch((err) => console.error("Lỗi lưu history.json:", err));
 }
 
 // Lưu theo tuần
@@ -77,13 +160,7 @@ function loadStudentsForWeek(date = new Date()) {
   if (Array.isArray(data)) return data;
   let fallback = JSON.parse(localStorage.getItem("students_base"));
   if (!Array.isArray(fallback)) {
-    fallback = [
-      { id: 1, name: "Nguyễn Văn A", points: 0 },
-      { id: 2, name: "Trần Thị B", points: 0 },
-      { id: 3, name: "Lê Văn C", points: 0 },
-      { id: 4, name: "Phạm Thị D", points: 0 },
-      { id: 5, name: "Hoàng Văn E", points: 0 },
-    ];
+    fallback = students;
   }
   localStorage.setItem(key, JSON.stringify(fallback));
   return JSON.parse(localStorage.getItem(key));
@@ -94,16 +171,30 @@ function saveStudentsForWeek(date = new Date()) {
   localStorage.setItem("students_base", JSON.stringify(students));
 }
 
-// Nhóm
-let groups = JSON.parse(localStorage.getItem("groups")) || [];
 // Đảm bảo tất cả nhóm có trường points (tương thích với dữ liệu cũ)
 groups.forEach((group) => {
   if (typeof group.points === "undefined") {
     group.points = 0;
   }
 });
+
 function saveGroups() {
-  localStorage.setItem("groups", JSON.stringify(groups));
+  fetch("process/save_groups.php", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(groups),
+  })
+    .then((res) => {
+      if (!res.ok) throw new Error("HTTP " + res.status);
+      return res.json();
+    })
+    .then((result) => {
+      console.log("Đã lưu groups.json:", result);
+    })
+    .catch((err) => {
+      console.error("Lỗi lưu groups.json:", err);
+      alert("Không thể lưu danh sách nhóm!");
+    });
 }
 
 // Lịch sử cộng điểm
@@ -138,19 +229,6 @@ function addToHistory(
   savePointHistory();
 }
 
-// Bảng điểm cộng trừ
-let criteriaData = JSON.parse(localStorage.getItem("criteriaData")) || {
-  add: [
-    { icon: "⭐", content: "Trả lời đúng", points: 1 },
-    { icon: "🏆", content: "Làm bài tốt", points: 2 },
-    { icon: "🎯", content: "Hoàn thành bài tập", points: 1 },
-  ],
-  subtract: [
-    { icon: "❌", content: "Không làm bài", points: 1 },
-    { icon: "⚠️", content: "Nói chuyện", points: 1 },
-    { icon: "🚫", content: "Không chú ý", points: 2 },
-  ],
-};
 function saveCriteriaData() {
   localStorage.setItem("criteriaData", JSON.stringify(criteriaData));
 }
@@ -340,45 +418,96 @@ function highlightPoints(elementId) {
   }
 }
 
+function addToStudentHistory(
+  studentId,
+  studentName,
+  pointsChange,
+  newTotal,
+  type = "individual"
+) {
+  const record = {
+    studentId,
+    studentName,
+    date: new Date().toISOString(),
+    points: pointsChange,
+    total: newTotal,
+    type, // "individual", "group", "batch" – để hiển thị loại hành động
+    recordId:
+      Date.now() + "_" + Math.floor(Math.random() * 10000) + "_" + studentId, // ID duy nhất, khó trùng
+  };
+
+  // Thêm vào mảng toàn cục
+  historyLog.push(record);
+
+  saveHistoryToFile();
+}
+
+function saveHistoryToFile() {
+  fetch("process/save_history.php", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(historyLog),
+  })
+    .then((res) => res.json())
+    .then((result) => {
+      if (result.status === "ok") {
+        console.log(
+          "Đã lưu history.json thành công!",
+          historyLog.length,
+          "bản ghi"
+        );
+      }
+    })
+    .catch((err) => {
+      console.error("Lỗi lưu history.json:", err);
+    });
+}
+
 function updateStudentPoints(studentId, change) {
   console.log("updateStudentPoints called:", studentId, change);
   const student = students.find((s) => s.id === studentId);
-  if (student) {
-    pushUndo();
-    const currentLevel = getCurrentLevel(student.points);
-    const adjusted = Math.round(change * (currentLevel.multiplier || 1));
-    const oldPoints = student.points;
-    student.points = student.points + adjusted;
-
-    // Lưu lịch sử điểm
-    if (!student.history) student.history = [];
-    student.history.push({
-      date: new Date().toISOString(),
-      points: adjusted,
-      total: student.points,
-    });
-
-    // Lưu vào lịch sử tập trung
-    addToHistory(
-      studentId,
-      student.name,
-      adjusted,
-      student.points,
-      "individual"
-    );
-
-    console.log("Student points updated:", student.name, student.points);
-    saveStudents();
-    renderStudents();
-    renderGroupGrid();
-    renderTopStudents();
-    renderTopGroups();
-    updateHomeStats();
-    // Highlight điểm sau khi render
-    setTimeout(() => {
-      highlightPoints(`points-${studentId}`);
-    }, 50);
+  if (!student) {
+    console.error("Student not found:", studentId);
+    return;
   }
+
+  pushUndo();
+  const currentLevel = getCurrentLevel(student.points);
+  const adjusted = Math.round(change * (currentLevel.multiplier || 1));
+  const oldPoints = student.points;
+  const oldLevel = getCurrentLevel(oldPoints);
+
+  student.points += adjusted;
+
+  addToStudentHistory(studentId, student.name, adjusted, student.points);
+
+  // Nếu bạn vẫn muốn giữ hàm addToHistory cũ cho mục khác, có thể giữ
+  // addToHistory(studentId, student.name, adjusted, student.points, "individual");
+
+  console.log("Student points updated:", student.name, student.points);
+
+  // CẬP NHẬT GIAO DIỆN
+  renderStudents();
+  renderGroupGrid();
+  renderTopStudents();
+  renderTopGroups();
+  updateHomeStats();
+
+  // Highlight điểm
+  setTimeout(() => {
+    highlightPoints(`points-${studentId}`);
+  }, 50);
+
+  saveToJson();
+
+  // Trả về để override dùng hiệu ứng
+  return {
+    student,
+    oldPoints,
+    oldLevel,
+    newLevel: getCurrentLevel(student.points),
+    levelUp: oldLevel.name !== getCurrentLevel(student.points).name,
+  };
 }
 
 function addPointsToAll(points) {
@@ -417,42 +546,36 @@ function addPointsToGroup(points, groupId) {
 
   // Cộng điểm vào nhóm (nếu là nhóm cụ thể)
   if (grp) {
-    // Đảm bảo nhóm có trường points
-    if (typeof grp.points === "undefined") {
-      grp.points = 0;
-    }
+    if (typeof grp.points === "undefined") grp.points = 0;
     grp.points = (grp.points || 0) + points;
     saveGroups();
   }
 
-  // Ưu đãi nhóm: lấy hệ số cao nhất trong nhóm (Quan/Tể tướng/Vua), chỉ tính 1 lần
+  // Ưu đãi nhóm: lấy hệ số cao nhất trong nhóm (Quan/Tể tướng/Vua)
   let groupMultiplier = 1;
   if (grp) {
     const topMult = targetIds
-      .map(
-        (id) =>
-          getCurrentLevel((students.find((s) => s.id === id) || {}).points || 0)
-            .multiplier || 1
-      )
+      .map((id) => {
+        const student = students.find((s) => s.id === id);
+        return student ? getCurrentLevel(student.points).multiplier || 1 : 1;
+      })
       .reduce((m, v) => Math.max(m, v), 1);
     groupMultiplier = Math.max(1, topMult);
   }
-  const levelUpStudents = []; // Lưu danh sách học sinh lên cấp
+
+  const levelUpStudents = []; // Danh sách học sinh lên cấp
+
   students.forEach((student) => {
     if (targetIds.includes(student.id)) {
-      // Lưu level trước khi cộng điểm
       const oldLevel = getCurrentLevel(student.points);
-      const selfMult = getCurrentLevel(student.points).multiplier || 1;
-      // Chỉ áp dụng hệ số khi các thành viên có chức vụ cao
+      const selfMult = oldLevel.multiplier || 1;
       const adjusted = Math.round(points * Math.max(selfMult, groupMultiplier));
 
       // Cộng điểm
-      student.points = student.points + adjusted;
+      student.points += adjusted;
 
-      // Kiểm tra level sau khi cộng điểm
+      // Kiểm tra lên cấp
       const newLevel = getCurrentLevel(student.points);
-
-      // Kiểm tra xem có lên cấp không
       if (oldLevel.name !== newLevel.name) {
         levelUpStudents.push({
           id: student.id,
@@ -461,25 +584,23 @@ function addPointsToGroup(points, groupId) {
         });
       }
 
-      // Lưu lịch sử điểm
-      if (!student.history) student.history = [];
-      student.history.push({
-        date: now,
-        points: adjusted,
-        total: student.points,
-      });
-
-      // Lưu vào lịch sử tập trung
-      addToHistory(
+      const historyType = grp ? "group" : "bulk"; // "group" nếu cộng nhóm, "bulk" nếu tất cả
+      addToStudentHistory(
         student.id,
         student.name,
         adjusted,
         student.points,
-        grp ? "group" : "bulk"
+        historyType
       );
+
+      // Nếu bạn vẫn muốn giữ addToHistory cũ cho mục đích khác, có thể gọi thêm
+      // addToHistory(student.id, student.name, adjusted, student.points, historyType);
     }
   });
-  saveStudents();
+
+  saveToJson();
+
+  // Cập nhật giao diện
   renderStudents();
   renderGroupGrid();
   renderGroupsGrid();
@@ -487,88 +608,100 @@ function addPointsToGroup(points, groupId) {
   renderTopGroups();
   updateHomeStats();
 
-  // Phát âm thanh khi cộng hoặc trừ điểm cho nhóm
+  // Âm thanh feedback
   if (points > 0) {
     playGameSound("success");
   } else if (points < 0) {
     playGameSound("click");
   }
 
-  // Hiển thị thông báo chúc mừng cho học sinh lên cấp
+  // Thông báo lên cấp
   if (levelUpStudents.length > 0 && points > 0) {
     playGameSound("levelup");
     showMultipleLevelUpNotifications(levelUpStudents);
   }
 
-  // Cập nhật modal nếu đang mở
+  // Cập nhật modal nhóm nếu đang mở
   const groupModal = document.getElementById("groupStudentsModal");
   if (groupModal && groupModal.style.display === "flex" && grp) {
     renderGroupStudents(grp.id);
   }
 
-  // Highlight điểm trên thẻ nhóm sau khi render
+  // Highlight điểm nhóm
   requestAnimationFrame(() => {
     setTimeout(() => {
       if (grp) {
-        // Highlight điểm trên thẻ nhóm
-        const groupPointsElement = document.getElementById(
-          `group-points-${grp.id}`
-        );
-        if (groupPointsElement) {
-          highlightPoints(`group-points-${grp.id}`);
-        }
+        const el = document.getElementById(`group-points-${grp.id}`);
+        if (el) highlightPoints(`group-points-${grp.id}`);
       } else {
-        // Nếu cộng cho tất cả, highlight tất cả thẻ nhóm
         groups.forEach((g) => {
-          const groupPointsElement = document.getElementById(
-            `group-points-${g.id}`
-          );
-          if (groupPointsElement) {
-            highlightPoints(`group-points-${g.id}`);
-          }
+          const el = document.getElementById(`group-points-${g.id}`);
+          if (el) highlightPoints(`group-points-${g.id}`);
         });
       }
     }, 100);
   });
 }
 
-function resetAllPoints() {
-  if (confirm("Bạn có chắc chắn muốn reset tất cả điểm số?")) {
-    students.forEach((student) => {
-      student.points = 0;
-    });
-    // Reset điểm nhóm về 0
-    groups.forEach((group) => {
-      group.points = 0;
-    });
-    saveStudents();
-    saveGroups();
-    renderStudents();
-    renderGroupGrid();
-    renderGroupsGrid();
-    renderTopStudents();
-    renderTopGroups();
-    updateHomeStats();
-  }
-}
-
-function handleAddMultipleStudents(textareaId = "bulkStudentNames") {
+async function handleAddMultipleStudents(textareaId = "bulkStudentNames") {
   const textarea = document.getElementById(textareaId);
   const lines = (textarea.value || "")
     .split(/\n+/)
     .map((s) => s.trim())
     .filter(Boolean);
-  if (lines.length === 0) return alert("Nhập ít nhất một tên học sinh.");
+
+  if (lines.length === 0) {
+    return alert("Vui lòng nhập ít nhất một tên học sinh.");
+  }
+
+  // Tính ID tiếp theo
   const maxId = students.reduce((m, s) => Math.max(m, s.id), 0);
   let nextId = maxId + 1;
+
+  // Thêm học sinh mới vào mảng students
   lines.forEach((name) => {
     students.push({ id: nextId++, name, points: 0 });
   });
+
+  // Xóa nội dung textarea
   textarea.value = "";
-  saveStudents();
+
+  // Cập nhật giao diện
   renderStudents();
   renderGroupSelects();
   renderGroupGrid();
+
+  const updatedData = {
+    students: students,
+    levels: levels,
+    rewardItems: rewardItems,
+    criteriaData: criteriaData,
+  };
+
+  try {
+    const response = await fetch("process/save_data.php", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(updatedData),
+    });
+
+    const result = await response.json();
+
+    if (result.status === "ok") {
+      alert(
+        `Đã thêm ${lines.length} học sinh thành công và lưu vào data.json!`
+      );
+    } else {
+      alert(
+        "Đã thêm học sinh nhưng lưu file thất bại. Vui lòng kiểm tra server."
+      );
+    }
+  } catch (error) {
+    console.error("Lỗi khi lưu dữ liệu:", error);
+    alert("Đã thêm học sinh nhưng không thể kết nối đến server để lưu file.");
+  }
 }
 
 function clearAllStudents() {
@@ -1011,63 +1144,6 @@ function showTab(tabName) {
   }
 }
 
-// Giao diện nhóm giống bảng chính
-function renderGroupGrid() {
-  const groupGrid = document.getElementById("groupGrid");
-  const groupSelect = document.getElementById("groupActionSelect");
-  if (!groupGrid || !groupSelect) return;
-  groupSelect.innerHTML = groups
-    .map((g) => `<option value="${g.id}">${g.name}</option>`)
-    .join("");
-  const selectedId = parseInt(groupSelect.value || groups[0]?.id || 0, 10);
-  const grp = groups.find((g) => g.id === selectedId);
-  groupGrid.innerHTML = "";
-  const memberIds = grp ? grp.studentIds : [];
-  const members = students
-    .filter((s) => memberIds.includes(s.id))
-    .sort(sortStudentsByLastName);
-  members.forEach((student) => {
-    const currentLevel = getCurrentLevel(student.points);
-    const progress = getProgressPercentage(student.points);
-    const card = document.createElement("div");
-    card.className = "student-card";
-    card.innerHTML = `
-                <div style="display:flex; justify-content: space-between; align-items:center; gap:8px;">
-                    <div class="student-name" style="margin-bottom:0;">${
-                      student.name
-                    }</div>
-                </div>
-                <div class="character-level">
-                    <div class="character-image" style="background: ${
-                      currentLevel.color
-                    }">
-                        <img src="${getLevelImage(currentLevel.name)}" alt="${
-      currentLevel.name
-    }" style="width: 120px; height: 120px;" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
-                        <span style="display: none;">${currentLevel.icon}</span>
-                    </div>
-                    <div class="level-name">${currentLevel.name}</div>
-                </div>
-                <div class="progress-bar">
-                    <div class="progress-fill" style="width: ${progress}%; background: ${getLevelGradient(
-      currentLevel.name
-    )}"><div class="progress-text">${Math.round(progress)}%</div></div>
-                </div>
-                <div class="controls" style="gap:6px;">
-                    <input type="number" id="gamount-${
-                      student.id
-                    }" value="1" min="1" style="width:80px; padding:8px 10px; border-radius:12px; border:1px solid #eee; text-align:center;" />
-                    <button class="btn btn-add" onclick="applyAmount(${
-                      student.id
-                    }, true)">Cộng</button>
-                    <button class="btn btn-subtract" onclick="applyAmount(${
-                      student.id
-                    }, false)">Trừ</button>
-                </div>`;
-    groupGrid.appendChild(card);
-  });
-}
-
 function applyGroupAction(isAdd) {
   const amt =
     parseInt(document.getElementById("groupAutoAmount").value, 10) || 1;
@@ -1342,46 +1418,7 @@ function loadPointBoardDisplay() {
   }
 }
 
-function applyCriteriaPoint(type, index) {
-  const item =
-    type === "add" ? criteriaData.add[index] : criteriaData.subtract[index];
-  if (!item) return;
 
-  if (
-    confirm(
-      `Áp dụng "${item.content}" (${type === "add" ? "+" : "-"}${
-        item.points
-      } điểm) cho tất cả học sinh?`
-    )
-  ) {
-    pushUndo();
-    const now = new Date().toISOString();
-    students.forEach((student) => {
-      const currentLevel = getCurrentLevel(student.points);
-      const adjusted = Math.round(
-        (type === "add" ? item.points : -item.points) *
-          (currentLevel.multiplier || 1)
-      );
-      student.points = student.points + adjusted;
-
-      if (!student.history) student.history = [];
-      student.history.push({
-        date: now,
-        points: adjusted,
-        total: student.points,
-        reason: item.content,
-      });
-    });
-    saveStudents();
-    renderStudents();
-    renderGroupGrid();
-    renderTopStudents();
-    renderTopGroups();
-    updateHomeStats();
-    closePointBoardModal();
-    alert(`Đã áp dụng "${item.content}" cho tất cả học sinh!`);
-  }
-}
 function buildThresholdTable() {
   const host = document.getElementById("thresholdTableBody");
   if (!host) return;
@@ -2029,49 +2066,62 @@ function populateStudentSelection() {
 
 function createNewGroup() {
   const textarea = document.getElementById("newGroupName");
-  const names = (textarea?.value || "")
+  if (!textarea) {
+    alert("Không tìm thấy trường nhập tên nhóm.");
+    return;
+  }
+
+  const names = textarea.value
     .split(/\n+/)
     .map((s) => s.trim())
     .filter(Boolean);
 
-  if (!textarea || names.length === 0) {
+  if (names.length === 0) {
     alert("Vui lòng nhập ít nhất một tên nhóm.");
     return;
   }
 
-  // Kiểm tra tên nhóm trùng
-  const duplicateNames = [];
-  names.forEach((name) => {
-    if (groups.some((g) => g.name.toLowerCase() === name.toLowerCase())) {
-      duplicateNames.push(name);
-    }
-  });
+  // Kiểm tra trùng tên (không phân biệt hoa thường)
+  const duplicateNames = names.filter((name) =>
+    groups.some((g) => g.name.toLowerCase() === name.toLowerCase())
+  );
 
   if (duplicateNames.length > 0) {
     alert(
       `Các tên nhóm sau đã tồn tại: ${duplicateNames.join(
         ", "
-      )}. Vui lòng chọn tên khác.`
+      )}\nVui lòng chọn tên khác.`
     );
     return;
   }
 
-  // Tạo các nhóm mới
-  names.forEach((name) => {
+  // Tính ID lớn nhất hiện tại
+  const maxId =
+    groups.length > 0 ? Math.max(...groups.map((g) => g.id || 0)) : 0;
+
+  // Thêm tất cả nhóm mới vào mảng groups (không lưu ở đây)
+  names.forEach((name, index) => {
     const newGroup = {
-      id: Date.now() + Math.random(),
-      name: name,
+      id: maxId + index + 1,
+      name: name.trim(),
       studentIds: [],
       points: 0,
     };
     groups.push(newGroup);
   });
 
+  // === CHỈ LƯU MỘT LẦN DUY NHẤT SAU KHI ĐÃ THÊM HẾT ===
   saveGroups();
+
+  // Cập nhật giao diện
   renderGroupsGrid();
-  renderGroupSelects();
+  renderGroupSelects?.();
+
+  // Đóng modal và làm sạch
   closeAddGroupModal();
-  alert(`Đã tạo ${names.length} nhóm thành công!`);
+  textarea.value = "";
+
+  alert(`Đã tạo thành công ${names.length} nhóm mới!`);
 }
 
 // Modal xóa nhóm
@@ -2360,113 +2410,6 @@ function selectAllStudents() {
     .forEach((cb) => (cb.checked = true));
 }
 
-function addPointsToSelected() {
-  const points = parseInt(document.getElementById("bulkPoints").value) || 1;
-  const selectedStudents = Array.from(
-    document.querySelectorAll(".student-select:checked")
-  ).map((cb) => parseInt(cb.id.replace("student-select-", "")));
-
-  if (selectedStudents.length === 0) {
-    alert("Vui lòng chọn ít nhất một học sinh.");
-    return;
-  }
-
-  pushUndo();
-  const levelUpStudents = []; // Lưu danh sách học sinh lên cấp
-  selectedStudents.forEach((id) => {
-    const student = students.find((s) => s.id === id);
-    if (student) {
-      // Lưu level trước khi cộng điểm
-      const oldLevel = getCurrentLevel(student.points);
-      const currentLevel = getCurrentLevel(student.points);
-      const adjusted = Math.round(points * (currentLevel.multiplier || 1));
-
-      // Cộng điểm
-      student.points = student.points + adjusted;
-
-      // Kiểm tra level sau khi cộng điểm
-      const newLevel = getCurrentLevel(student.points);
-
-      // Kiểm tra xem có lên cấp không
-      if (oldLevel.name !== newLevel.name) {
-        levelUpStudents.push({
-          id: id,
-          name: student.name,
-          newLevel: newLevel.name,
-        });
-      }
-
-      // Lưu vào lịch sử
-      addToHistory(id, student.name, adjusted, student.points, "bulk");
-    }
-  });
-  saveStudents();
-  renderStudents();
-  renderGroupGrid();
-  updateHomeStats();
-
-  // Phát âm thanh khi cộng điểm cho nhiều học sinh
-  playGameSound("success");
-
-  // Hiển thị thông báo chúc mừng cho học sinh lên cấp
-  if (levelUpStudents.length > 0) {
-    playGameSound("levelup");
-    showMultipleLevelUpNotifications(levelUpStudents);
-  }
-  // Highlight điểm của các học sinh đã chọn - đợi DOM render xong
-  requestAnimationFrame(() => {
-    setTimeout(() => {
-      selectedStudents.forEach((id) => {
-        const element = document.getElementById(`points-${id}`);
-        if (element) {
-          highlightPoints(`points-${id}`);
-        }
-      });
-    }, 50);
-  });
-}
-
-function subtractPointsFromSelected() {
-  const points = parseInt(document.getElementById("bulkPoints").value) || 1;
-  const selectedStudents = Array.from(
-    document.querySelectorAll(".student-select:checked")
-  ).map((cb) => parseInt(cb.id.replace("student-select-", "")));
-
-  if (selectedStudents.length === 0) {
-    alert("Vui lòng chọn ít nhất một học sinh.");
-    return;
-  }
-
-  pushUndo();
-  selectedStudents.forEach((id) => {
-    const student = students.find((s) => s.id === id);
-    if (student) {
-      const currentLevel = getCurrentLevel(student.points);
-      const adjusted = Math.round(points * (currentLevel.multiplier || 1));
-      student.points = student.points - adjusted;
-      // Lưu vào lịch sử (điểm âm)
-      addToHistory(id, student.name, -adjusted, student.points, "bulk");
-    }
-  });
-  saveStudents();
-  renderStudents();
-  renderGroupGrid();
-  updateHomeStats();
-  // Phát âm thanh khi trừ điểm cho nhiều học sinh
-  playGameSound("click");
-  // Highlight điểm của các học sinh đã chọn - đợi DOM render xong
-  requestAnimationFrame(() => {
-    setTimeout(() => {
-      selectedStudents.forEach((id) => {
-        const element = document.getElementById(`points-${id}`);
-        if (element) {
-          highlightPoints(`points-${id}`);
-        }
-      });
-    }, 50);
-  });
-}
-
 // Các hàm mới cho trang chủ
 function updateHomeStats() {
   console.log("updateHomeStats called");
@@ -2503,32 +2446,54 @@ function updateHomeStats() {
 
 function renderTopStudents() {
   const topStudentsList = document.getElementById("topStudentsList");
-  const topStudents = students.sort((a, b) => b.points - a.points).slice(0, 5);
+  if (!topStudentsList) {
+    console.error("Không tìm thấy #topStudentsList trong DOM");
+    return;
+  }
 
+  // Kiểm tra nếu students chưa load hoặc rỗng
+  if (!students || students.length === 0) {
+    topStudentsList.innerHTML = "<p>Chưa có dữ liệu học sinh.</p>";
+    return;
+  }
+
+  // Sắp xếp và lấy top 5
+  const topStudents = [...students] // clone để không làm thay đổi mảng gốc
+    .sort((a, b) => b.points - a.points)
+    .slice(0, 5);
+
+  // Render danh sách
   topStudentsList.innerHTML = topStudents
     .map((student, index) => {
       const level = getCurrentLevel(student.points);
+      const levelImage = getLevelImage(level.name);
+
       return `
-                <div class="member">
-                    <div style="font-size: 1.5rem; font-weight: bold; color: #FFA726; min-width: 30px; text-align: center;">${
-                      index + 1
-                    }</div>
-                    <div class="member-avatar" style="background: ${
-                      level.color
-                    }; overflow: hidden;">
-                        <img src="${getLevelImage(level.name)}" alt="${
-        level.name
-      }" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
-                        <span style="display: none;">${level.icon}</span>
-                    </div>
-                    <div class="member-info">
-                        <div class="member-name">${student.name}</div>
-                        <div class="member-level">${level.name} - ${
+        <div class="member">
+          <div style="font-size: 1.5rem; font-weight: bold; color: #FFA726; min-width: 30px; text-align: center;">
+            ${index + 1}
+          </div>
+          <div class="member-avatar" style="background: ${
+            level.color
+          }; overflow: hidden; position: relative;">
+            <img 
+              src="${levelImage}" 
+              alt="${level.name}" 
+              style="width: 100%; height: 100%; object-fit: cover;"
+              onerror="this.style.display='none'; this.nextElementSibling.style.display='block';"
+            >
+            <span style="display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 2rem;">
+              ${level.icon}
+            </span>
+          </div>
+          <div class="member-info">
+            <div class="member-name">${student.name}</div>
+            <div class="member-level">${level.name} - ${
         student.points
       } điểm</div>
-                    </div>
-                </div>
-            `;
+          </div>
+        </div>
+      `;
     })
     .join("");
 }
@@ -4503,23 +4468,24 @@ function playGameSound(type) {
   }
 }
 
-// Enhanced updateStudentPoints with game effects
+// Enhanced version với hiệu ứng, nhưng vẫn dùng kết quả từ hàm gốc
 const originalUpdateStudentPoints = updateStudentPoints;
 updateStudentPoints = function (studentId, change) {
-  originalUpdateStudentPoints(studentId, change);
+  // Gọi hàm gốc → thực hiện thay đổi + lưu vào data.json
+  const result = originalUpdateStudentPoints(studentId, change);
+
+  // result sẽ là undefined nếu bạn chưa return ở hàm gốc → giờ đã có!
+  if (!result) return;
+
+  const { student, levelUp } = result;
+
+  // Phát âm thanh
   playGameSound(change > 0 ? "success" : "click");
 
-  // Add visual feedback
-  const student = students.find((s) => s.id === studentId);
-  if (student) {
-    const currentLevel = getCurrentLevel(student.points);
-    const nextLevel = getNextLevel(student.points);
-
-    // Check for level up
-    if (currentLevel.name !== getCurrentLevel(student.points - change).name) {
-      playGameSound("levelup");
-      showLevelUpNotification(student.name, currentLevel.name);
-    }
+  // Kiểm tra thăng cấp
+  if (levelUp) {
+    playGameSound("levelup");
+    showLevelUpNotification(student.name, result.newLevel.name);
   }
 };
 
@@ -5185,18 +5151,46 @@ function closeHistoryModal() {
   playSelectionSound();
 }
 
+function toggleSelectAll(event) {
+  const selectAllCheckbox = event.target;
+  const isChecked = selectAllCheckbox.checked;
+
+  // Lấy tất cả checkbox con trong historyList
+  const checkboxes = document.querySelectorAll(
+    '#historyList input[type="checkbox"]:not(#select-all-history)'
+  );
+
+  checkboxes.forEach((cb) => {
+    if (cb.checked !== isChecked) {
+      cb.checked = isChecked;
+      // Gọi hàm toggle để cập nhật trạng thái chọn (nếu bạn có mảng selectedHistoryIds)
+      const recordId = cb.id.replace("history-check-", "");
+      toggleHistorySelection(recordId);
+    }
+  });
+
+  updateDeleteButtonVisibility();
+}
+
 function renderHistory() {
   const historyList = document.getElementById("historyList");
   if (!historyList) return;
 
-  // Lọc lịch sử 3 ngày gần nhất
+  if (!historyLog || historyLog.length === 0) {
+    historyList.innerHTML =
+      '<div style="text-align:center; padding:40px; color:#666;">Chưa có lịch sử điểm nào.</div>';
+    updateDeleteButtonVisibility();
+    return;
+  }
+
+  // Lọc 3 ngày gần nhất
   const threeDaysAgo = new Date();
   threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
   threeDaysAgo.setHours(0, 0, 0, 0);
 
-  const recentHistory = pointHistory
+  const recentHistory = historyLog
     .filter((item) => new Date(item.date) >= threeDaysAgo)
-    .sort((a, b) => new Date(b.date) - new Date(a.date)); // Sắp xếp mới nhất trước
+    .sort((a, b) => new Date(b.date) - new Date(a.date));
 
   if (recentHistory.length === 0) {
     historyList.innerHTML =
@@ -5208,83 +5202,123 @@ function renderHistory() {
   // Nhóm theo ngày
   const historyByDate = {};
   recentHistory.forEach((item) => {
-    const date = new Date(item.date);
-    const dateKey = date.toLocaleDateString("vi-VN", {
+    const dateKey = new Date(item.date).toLocaleDateString("vi-VN", {
       weekday: "long",
       year: "numeric",
       month: "long",
       day: "numeric",
     });
-    if (!historyByDate[dateKey]) {
-      historyByDate[dateKey] = [];
-    }
+    if (!historyByDate[dateKey]) historyByDate[dateKey] = [];
     historyByDate[dateKey].push(item);
   });
 
   let html = "";
-  Object.keys(historyByDate).forEach((dateKey) => {
-    html += `<div style="margin-bottom:30px;">
-                <h4 style="font-size:1.2rem; font-weight:700; color:#333; margin-bottom:15px; padding-bottom:10px; border-bottom:2px solid #eee;">${dateKey}</h4>`;
+  let itemIndex = 0;
 
-    historyByDate[dateKey].forEach((item) => {
-      const time = new Date(item.date).toLocaleTimeString("vi-VN", {
-        hour: "2-digit",
-        minute: "2-digit",
+  // === HEADER: NÚT CHỌN TẤT CẢ ===
+  html += `
+    <div style="margin-bottom: 20px; padding: 15px 20px; background: #e3f2fd; border-radius: 12px; display: flex; align-items: center; gap: 15px; font-weight: 600; color: #1976d2; border: 1px solid #bbdefb;">
+      <input type="checkbox" id="select-all-history" style="width:22px; height:22px; cursor:pointer; transform:scale(1.3);" />
+      <label for="select-all-history" style="cursor:pointer; flex:1; margin:0; user-select:none; font-size:1.1rem;">
+        Chọn tất cả (${recentHistory.length} bản ghi)
+      </label>
+    </div>`;
+
+  // Render từng ngày
+  Object.keys(historyByDate)
+    .sort((a, b) => new Date(b) - new Date(a))
+    .forEach((dateKey) => {
+      html += `<div style="margin-bottom:30px;">
+                <h4 style="font-size:1.2rem; font-weight:700; color:#333; margin-bottom:15px; padding-bottom:10px; border-bottom:2px solid #eee;">
+                  ${dateKey}
+                </h4>`;
+
+      historyByDate[dateKey].forEach((item) => {
+        const time = new Date(item.date).toLocaleTimeString("vi-VN", {
+          hour: "2-digit",
+          minute: "2-digit",
+        });
+        const pointsColor = item.points >= 0 ? "#28a745" : "#dc3545";
+        const pointsSign = item.points >= 0 ? "+" : "";
+        const recordId = item.recordId || `hist_${itemIndex++}`;
+        const typeText =
+          item.type === "group"
+            ? "Nhóm"
+            : item.type === "batch"
+            ? "Hàng loạt"
+            : "Cá nhân";
+
+        const isChecked = selectedHistoryItems.has(recordId) ? "checked" : "";
+
+        html += `
+        <div style="display:flex; align-items:center; gap:15px; padding:15px; background:#f8f9fa; border-radius:12px; margin-bottom:10px; transition:all 0.3s; cursor:pointer;" 
+             onmouseover="this.style.background='#e9ecef'" 
+             onmouseout="this.style.background='#f8f9fa'"
+             onclick="if(event.target.type !== 'checkbox' && event.target.tagName !== 'BUTTON' && !event.target.closest('button')) { 
+               const cb = document.getElementById('history-check-${recordId}'); 
+               if(cb) { cb.checked = !cb.checked; toggleHistorySelection('${recordId}'); } 
+             }">
+          <input type="checkbox" 
+                 id="history-check-${recordId}" 
+                 ${isChecked}
+                 onchange="toggleHistorySelection('${recordId}')" 
+                 onclick="event.stopPropagation();"
+                 style="width:20px; height:20px; cursor:pointer; transform:scale(1.2);" />
+          <div style="flex:1; display:flex; align-items:center; gap:15px;">
+            <div style="min-width:80px; font-weight:600; color:#666;">${time}</div>
+            <div style="flex:1; font-weight:600; color:#333;">${item.studentName}</div>
+            <div style="min-width:100px; text-align:right; font-weight:700; color:${pointsColor};">
+              ${pointsSign}${item.points} điểm
+            </div>
+            <div style="min-width:80px; text-align:right; color:#666;">
+              Tổng: ${item.total}
+            </div>
+            <div style="min-width:100px; text-align:center;">
+              <span style="padding:4px 12px; background:#e9ecef; border-radius:8px; font-size:0.85rem; color:#666;">
+                ${typeText}
+              </span>
+            </div>
+          </div>
+          <button onclick="deleteHistoryItem('${recordId}'); event.stopPropagation();" 
+                  style="background:#ff6b6b; color:white; border:none; padding:8px 16px; border-radius:8px; cursor:pointer; font-weight:600; font-size:1.2rem;">
+            ×
+          </button>
+        </div>`;
       });
-      const pointsColor = item.points >= 0 ? "#28a745" : "#dc3545";
-      const pointsSign = item.points >= 0 ? "+" : "";
 
-      html += `
-                    <div style="display:flex; align-items:center; gap:15px; padding:15px; background:#f8f9fa; border-radius:12px; margin-bottom:10px; transition:all 0.3s; cursor:pointer;" 
-                            onmouseover="this.style.background='#e9ecef'" 
-                            onmouseout="this.style.background='#f8f9fa'"
-                            onclick="if(event.target.type !== 'checkbox' && event.target.tagName !== 'BUTTON' && !event.target.closest('button')) { const cb = document.getElementById('history-check-${
-                              item.id
-                            }'); if(cb) { cb.checked = !cb.checked; toggleHistorySelection(${
-        item.id
-      }); } }">
-                        <input type="checkbox" 
-                                id="history-check-${item.id}" 
-                                onchange="toggleHistorySelection(${item.id})" 
-                                onclick="event.stopPropagation();"
-                                style="width:20px; height:20px; cursor:pointer; transform:scale(1.2);" />
-                        <div style="flex:1; display:flex; align-items:center; gap:15px;">
-                            <div style="min-width:80px; font-weight:600; color:#666;">${time}</div>
-                            <div style="flex:1; font-weight:600; color:#333;">${
-                              item.studentName
-                            }</div>
-                            <div style="min-width:100px; text-align:right; font-weight:700; color:${pointsColor};">
-                                ${pointsSign}${item.points} điểm
-                            </div>
-                            <div style="min-width:80px; text-align:right; color:#666;">
-                                Tổng: ${item.totalPoints}
-                            </div>
-                            <div style="min-width:100px; text-align:center;">
-                                <span style="padding:4px 12px; background:#e9ecef; border-radius:8px; font-size:0.85rem; color:#666;">
-                                    ${
-                                      item.type === "individual"
-                                        ? "Cá nhân"
-                                        : item.type === "group"
-                                        ? "Nhóm"
-                                        : "Hàng loạt"
-                                    }
-                                </span>
-                            </div>
-                        </div>
-                        <button onclick="deleteHistoryItem(${
-                          item.id
-                        }); event.stopPropagation();" 
-                                style="background:#ff6b6b; color:white; border:none; padding:8px 16px; border-radius:8px; cursor:pointer; font-weight:600; font-size:1.2rem; min-width:40px;"
-                                onmouseover="this.style.background='#ff4757'" 
-                                onmouseout="this.style.background='#ff6b6b'">×</button>
-                    </div>
-                `;
+      html += `</div>`;
     });
 
-    html += "</div>";
-  });
-
   historyList.innerHTML = html;
+
+  // Gắn sự kiện cho nút "Chọn tất cả"
+  const selectAllCb = document.getElementById("select-all-history");
+  if (selectAllCb) {
+    selectAllCb.onclick = function (e) {
+      e.stopPropagation();
+      const shouldCheck = this.checked;
+      document
+        .querySelectorAll(
+          '#historyList input[type="checkbox"]:not(#select-all-history)'
+        )
+        .forEach((cb) => {
+          const recordId = cb.id.replace("history-check-", "");
+          if (cb.checked !== shouldCheck) {
+            cb.checked = shouldCheck;
+            if (shouldCheck) {
+              selectedHistoryItems.add(recordId);
+            } else {
+              selectedHistoryItems.delete(recordId);
+            }
+          }
+        });
+      updateDeleteButtonVisibility();
+    };
+  }
+
+  // Cập nhật trạng thái ban đầu của "Chọn tất cả"
+  updateSelectAllCheckboxState(recentHistory);
+
   updateDeleteButtonVisibility();
 }
 
@@ -5307,68 +5341,4 @@ function updateDeleteButtonVisibility() {
       deleteBtn.style.display = "none";
     }
   }
-}
-
-function deleteHistoryItem(itemId) {
-  if (!confirm("Bạn có chắc muốn xóa mục lịch sử này?")) return;
-
-  const item = pointHistory.find((h) => h.id === itemId);
-  if (!item) return;
-
-  // Hoàn tác điểm: trừ điểm đã cộng
-  const student = students.find((s) => s.id === item.studentId);
-  if (student) {
-    student.points = student.points - item.points;
-    saveStudents();
-    renderStudents();
-    renderGroupGrid();
-    updateHomeStats();
-  }
-
-  // Xóa khỏi lịch sử
-  pointHistory = pointHistory.filter((h) => h.id !== itemId);
-  savePointHistory();
-
-  // Render lại
-  renderHistory();
-  playSelectionSound();
-}
-
-function deleteSelectedHistoryItems() {
-  if (selectedHistoryItems.size === 0) {
-    alert("Vui lòng chọn ít nhất một mục!");
-    return;
-  }
-
-  if (
-    !confirm(
-      `Bạn có chắc muốn xóa ${selectedHistoryItems.size} mục lịch sử đã chọn?`
-    )
-  )
-    return;
-
-  // Hoàn tác điểm cho tất cả các mục đã chọn
-  selectedHistoryItems.forEach((itemId) => {
-    const item = pointHistory.find((h) => h.id === itemId);
-    if (item) {
-      const student = students.find((s) => s.id === item.studentId);
-      if (student) {
-        student.points = student.points - item.points;
-      }
-    }
-  });
-
-  // Xóa khỏi lịch sử
-  pointHistory = pointHistory.filter((h) => !selectedHistoryItems.has(h.id));
-  savePointHistory();
-
-  // Lưu và render lại
-  saveStudents();
-  renderStudents();
-  renderGroupGrid();
-  updateHomeStats();
-
-  selectedHistoryItems.clear();
-  renderHistory();
-  playSelectionSound();
 }
