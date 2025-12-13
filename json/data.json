@@ -29,6 +29,11 @@
             "id": 7,
             "name": "new student",
             "points": 0
+        },
+        {
+            "id": 8,
+            "name": "B",
+            "points": 0
         }
     ],
     "levels": [

@@ -791,7 +791,6 @@ function renderStudents() {
 
   // Thay đổi layout thành grid 6 cột
   grid.style.display = "grid";
-  // grid.style.gridTemplateColumns = "repeat(6, 1fr)";
   grid.style.gap = "20px";
   grid.innerHTML = "";
 
@@ -4609,9 +4608,7 @@ function renderStudents() {
   if (!grid) return;
 
   // Sắp xếp theo alphabet
-  const sortedStudents = [...students].sort((a, b) =>
-    a.name.localeCompare(b.name, "vi")
-  );
+  const sortedStudents = [...students].sort(sortStudentsByLastName);
 
   if (isCompactView) {
     // Chế độ compact - nhiều học sinh trên một dòng
