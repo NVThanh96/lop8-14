@@ -2,46 +2,577 @@
     {
         "studentId": 5,
         "studentName": "a",
-        "date": "2025-12-11T10:01:22.628Z",
+        "date": "2025-12-13T11:33:44.193Z",
         "points": 1,
         "total": 1,
         "type": "individual",
-        "recordId": "1765447282628_7649_5"
+        "recordId": "1765625624193_4902_5"
     },
     {
         "studentId": 5,
         "studentName": "a",
-        "date": "2025-12-11T10:01:23.676Z",
-        "points": 1,
-        "total": 2,
-        "type": "individual",
-        "recordId": "1765447283676_9555_5"
-    },
-    {
-        "studentId": 5,
-        "studentName": "a",
-        "date": "2025-12-11T10:01:24.769Z",
-        "points": -1,
-        "total": 1,
-        "type": "individual",
-        "recordId": "1765447284769_35_5"
-    },
-    {
-        "studentId": 5,
-        "studentName": "a",
-        "date": "2025-12-11T10:10:27.972Z",
+        "date": "2025-12-13T11:33:44.384Z",
         "points": 1,
         "total": 2,
         "type": "individual",
-        "recordId": "1765447827972_8095_5"
+        "recordId": "1765625624384_8692_5"
     },
     {
         "studentId": 5,
         "studentName": "a",
-        "date": "2025-12-11T10:10:29.111Z",
-        "points": -1,
-        "total": 1,
+        "date": "2025-12-13T11:33:44.562Z",
+        "points": 1,
+        "total": 3,
         "type": "individual",
-        "recordId": "1765447829111_6321_5"
+        "recordId": "1765625624562_891_5"
+    },
+    {
+        "studentId": 5,
+        "studentName": "a",
+        "date": "2025-12-13T11:33:44.734Z",
+        "points": 1,
+        "total": 4,
+        "type": "individual",
+        "recordId": "1765625624734_4689_5"
+    },
+    {
+        "studentId": 5,
+        "studentName": "a",
+        "date": "2025-12-13T11:33:44.889Z",
+        "points": 1,
+        "total": 5,
+        "type": "individual",
+        "recordId": "1765625624889_8447_5"
+    },
+    {
+        "studentId": 5,
+        "studentName": "a",
+        "date": "2025-12-13T11:33:45.050Z",
+        "points": 1,
+        "total": 6,
+        "type": "individual",
+        "recordId": "1765625625050_5660_5"
+    },
+    {
+        "studentId": 5,
+        "studentName": "a",
+        "date": "2025-12-13T11:33:45.233Z",
+        "points": 1,
+        "total": 7,
+        "type": "individual",
+        "recordId": "1765625625233_8729_5"
+    },
+    {
+        "studentId": 5,
+        "studentName": "a",
+        "date": "2025-12-13T11:33:45.409Z",
+        "points": 1,
+        "total": 8,
+        "type": "individual",
+        "recordId": "1765625625409_704_5"
+    },
+    {
+        "studentId": 5,
+        "studentName": "a",
+        "date": "2025-12-13T11:33:45.584Z",
+        "points": 1,
+        "total": 9,
+        "type": "individual",
+        "recordId": "1765625625584_8222_5"
+    },
+    {
+        "studentId": 5,
+        "studentName": "a",
+        "date": "2025-12-13T11:33:45.777Z",
+        "points": 1,
+        "total": 10,
+        "type": "individual",
+        "recordId": "1765625625777_9889_5"
+    },
+    {
+        "studentId": 5,
+        "studentName": "a",
+        "date": "2025-12-13T11:33:45.962Z",
+        "points": 1,
+        "total": 11,
+        "type": "individual",
+        "recordId": "1765625625962_367_5"
+    },
+    {
+        "studentId": 5,
+        "studentName": "a",
+        "date": "2025-12-13T11:33:46.255Z",
+        "points": 1,
+        "total": 12,
+        "type": "individual",
+        "recordId": "1765625626255_5515_5"
+    },
+    {
+        "studentId": 5,
+        "studentName": "a",
+        "date": "2025-12-13T11:33:46.825Z",
+        "points": 1,
+        "total": 13,
+        "type": "individual",
+        "recordId": "1765625626825_1690_5"
+    },
+    {
+        "studentId": 5,
+        "studentName": "a",
+        "date": "2025-12-13T11:33:46.992Z",
+        "points": 1,
+        "total": 14,
+        "type": "individual",
+        "recordId": "1765625626992_1970_5"
+    },
+    {
+        "studentId": 5,
+        "studentName": "a",
+        "date": "2025-12-13T11:33:47.170Z",
+        "points": 1,
+        "total": 15,
+        "type": "individual",
+        "recordId": "1765625627170_1290_5"
+    },
+    {
+        "studentId": 5,
+        "studentName": "a",
+        "date": "2025-12-13T11:33:47.354Z",
+        "points": 1,
+        "total": 16,
+        "type": "individual",
+        "recordId": "1765625627354_8786_5"
+    },
+    {
+        "studentId": 5,
+        "studentName": "a",
+        "date": "2025-12-13T11:33:47.521Z",
+        "points": 1,
+        "total": 17,
+        "type": "individual",
+        "recordId": "1765625627521_6586_5"
+    },
+    {
+        "studentId": 5,
+        "studentName": "a",
+        "date": "2025-12-13T11:33:47.705Z",
+        "points": 1,
+        "total": 18,
+        "type": "individual",
+        "recordId": "1765625627705_4606_5"
+    },
+    {
+        "studentId": 5,
+        "studentName": "a",
+        "date": "2025-12-13T11:33:47.880Z",
+        "points": 1,
+        "total": 19,
+        "type": "individual",
+        "recordId": "1765625627880_9743_5"
+    },
+    {
+        "studentId": 5,
+        "studentName": "a",
+        "date": "2025-12-13T11:33:48.066Z",
+        "points": 1,
+        "total": 20,
+        "type": "individual",
+        "recordId": "1765625628066_9046_5"
+    },
+    {
+        "studentId": 5,
+        "studentName": "a",
+        "date": "2025-12-13T11:33:48.240Z",
+        "points": 1,
+        "total": 21,
+        "type": "individual",
+        "recordId": "1765625628240_9462_5"
+    },
+    {
+        "studentId": 5,
+        "studentName": "a",
+        "date": "2025-12-13T11:33:48.401Z",
+        "points": 1,
+        "total": 22,
+        "type": "individual",
+        "recordId": "1765625628401_250_5"
+    },
+    {
+        "studentId": 5,
+        "studentName": "a",
+        "date": "2025-12-13T11:33:48.851Z",
+        "points": 1,
+        "total": 23,
+        "type": "individual",
+        "recordId": "1765625628851_8480_5"
+    },
+    {
+        "studentId": 5,
+        "studentName": "a",
+        "date": "2025-12-13T11:33:49.225Z",
+        "points": 1,
+        "total": 24,
+        "type": "individual",
+        "recordId": "1765625629225_8695_5"
+    },
+    {
+        "studentId": 5,
+        "studentName": "a",
+        "date": "2025-12-13T11:33:49.569Z",
+        "points": 1,
+        "total": 25,
+        "type": "individual",
+        "recordId": "1765625629569_561_5"
+    },
+    {
+        "studentId": 5,
+        "studentName": "a",
+        "date": "2025-12-13T11:33:52.009Z",
+        "points": 2,
+        "total": 27,
+        "type": "individual",
+        "recordId": "1765625632009_6399_5"
+    },
+    {
+        "studentId": 5,
+        "studentName": "a",
+        "date": "2025-12-13T11:33:52.193Z",
+        "points": 2,
+        "total": 29,
+        "type": "individual",
+        "recordId": "1765625632193_2810_5"
+    },
+    {
+        "studentId": 5,
+        "studentName": "a",
+        "date": "2025-12-13T11:33:52.385Z",
+        "points": 2,
+        "total": 31,
+        "type": "individual",
+        "recordId": "1765625632385_5950_5"
+    },
+    {
+        "studentId": 5,
+        "studentName": "a",
+        "date": "2025-12-13T11:33:52.568Z",
+        "points": 2,
+        "total": 33,
+        "type": "individual",
+        "recordId": "1765625632568_4708_5"
+    },
+    {
+        "studentId": 5,
+        "studentName": "a",
+        "date": "2025-12-13T11:33:52.763Z",
+        "points": 2,
+        "total": 35,
+        "type": "individual",
+        "recordId": "1765625632763_6746_5"
+    },
+    {
+        "studentId": 5,
+        "studentName": "a",
+        "date": "2025-12-13T11:33:52.960Z",
+        "points": 2,
+        "total": 37,
+        "type": "individual",
+        "recordId": "1765625632960_4292_5"
+    },
+    {
+        "studentId": 5,
+        "studentName": "a",
+        "date": "2025-12-13T11:33:53.144Z",
+        "points": 2,
+        "total": 39,
+        "type": "individual",
+        "recordId": "1765625633144_8486_5"
+    },
+    {
+        "studentId": 5,
+        "studentName": "a",
+        "date": "2025-12-13T11:33:53.344Z",
+        "points": 2,
+        "total": 41,
+        "type": "individual",
+        "recordId": "1765625633344_3725_5"
+    },
+    {
+        "studentId": 5,
+        "studentName": "a",
+        "date": "2025-12-13T11:33:55.354Z",
+        "points": -3,
+        "total": 38,
+        "type": "individual",
+        "recordId": "1765625635354_5657_5"
+    },
+    {
+        "studentId": 5,
+        "studentName": "a",
+        "date": "2025-12-13T11:33:55.537Z",
+        "points": -2,
+        "total": 36,
+        "type": "individual",
+        "recordId": "1765625635537_9291_5"
+    },
+    {
+        "studentId": 5,
+        "studentName": "a",
+        "date": "2025-12-13T11:33:55.722Z",
+        "points": -2,
+        "total": 34,
+        "type": "individual",
+        "recordId": "1765625635722_9343_5"
+    },
+    {
+        "studentId": 5,
+        "studentName": "a",
+        "date": "2025-12-13T11:33:56.009Z",
+        "points": -2,
+        "total": 32,
+        "type": "individual",
+        "recordId": "1765625636009_9543_5"
+    },
+    {
+        "studentId": 2,
+        "studentName": "Trần Thị B",
+        "date": "2025-12-13T11:34:22.411Z",
+        "points": 1,
+        "total": 1,
+        "type": "group",
+        "recordId": "1765625662411_9172_2"
+    },
+    {
+        "studentId": 4,
+        "studentName": "test",
+        "date": "2025-12-13T11:34:22.411Z",
+        "points": 1,
+        "total": 1,
+        "type": "group",
+        "recordId": "1765625662411_6519_4"
+    },
+    {
+        "studentId": 2,
+        "studentName": "Trần Thị B",
+        "date": "2025-12-13T11:34:22.570Z",
+        "points": 1,
+        "total": 2,
+        "type": "group",
+        "recordId": "1765625662570_8024_2"
+    },
+    {
+        "studentId": 4,
+        "studentName": "test",
+        "date": "2025-12-13T11:34:22.570Z",
+        "points": 1,
+        "total": 2,
+        "type": "group",
+        "recordId": "1765625662570_281_4"
+    },
+    {
+        "studentId": 2,
+        "studentName": "Trần Thị B",
+        "date": "2025-12-13T11:34:22.747Z",
+        "points": 1,
+        "total": 3,
+        "type": "group",
+        "recordId": "1765625662747_2450_2"
+    },
+    {
+        "studentId": 4,
+        "studentName": "test",
+        "date": "2025-12-13T11:34:22.748Z",
+        "points": 1,
+        "total": 3,
+        "type": "group",
+        "recordId": "1765625662748_6768_4"
+    },
+    {
+        "studentId": 2,
+        "studentName": "Trần Thị B",
+        "date": "2025-12-13T11:34:22.915Z",
+        "points": 1,
+        "total": 4,
+        "type": "group",
+        "recordId": "1765625662915_4584_2"
+    },
+    {
+        "studentId": 4,
+        "studentName": "test",
+        "date": "2025-12-13T11:34:22.915Z",
+        "points": 1,
+        "total": 4,
+        "type": "group",
+        "recordId": "1765625662915_8708_4"
+    },
+    {
+        "studentId": 2,
+        "studentName": "Trần Thị B",
+        "date": "2025-12-13T11:34:23.074Z",
+        "points": 1,
+        "total": 5,
+        "type": "group",
+        "recordId": "1765625663074_362_2"
+    },
+    {
+        "studentId": 4,
+        "studentName": "test",
+        "date": "2025-12-13T11:34:23.074Z",
+        "points": 1,
+        "total": 5,
+        "type": "group",
+        "recordId": "1765625663074_9855_4"
+    },
+    {
+        "studentId": 2,
+        "studentName": "Trần Thị B",
+        "date": "2025-12-13T11:34:23.251Z",
+        "points": 1,
+        "total": 6,
+        "type": "group",
+        "recordId": "1765625663251_5829_2"
+    },
+    {
+        "studentId": 4,
+        "studentName": "test",
+        "date": "2025-12-13T11:34:23.252Z",
+        "points": 1,
+        "total": 6,
+        "type": "group",
+        "recordId": "1765625663252_9872_4"
+    },
+    {
+        "studentId": 2,
+        "studentName": "Trần Thị B",
+        "date": "2025-12-13T11:34:23.418Z",
+        "points": 1,
+        "total": 7,
+        "type": "group",
+        "recordId": "1765625663419_342_2"
+    },
+    {
+        "studentId": 4,
+        "studentName": "test",
+        "date": "2025-12-13T11:34:23.419Z",
+        "points": 1,
+        "total": 7,
+        "type": "group",
+        "recordId": "1765625663419_9132_4"
+    },
+    {
+        "studentId": 2,
+        "studentName": "Trần Thị B",
+        "date": "2025-12-13T11:34:23.586Z",
+        "points": 1,
+        "total": 8,
+        "type": "group",
+        "recordId": "1765625663586_9013_2"
+    },
+    {
+        "studentId": 4,
+        "studentName": "test",
+        "date": "2025-12-13T11:34:23.586Z",
+        "points": 1,
+        "total": 8,
+        "type": "group",
+        "recordId": "1765625663586_1661_4"
+    },
+    {
+        "studentId": 2,
+        "studentName": "Trần Thị B",
+        "date": "2025-12-13T11:34:23.770Z",
+        "points": 1,
+        "total": 9,
+        "type": "group",
+        "recordId": "1765625663770_2233_2"
+    },
+    {
+        "studentId": 4,
+        "studentName": "test",
+        "date": "2025-12-13T11:34:23.770Z",
+        "points": 1,
+        "total": 9,
+        "type": "group",
+        "recordId": "1765625663770_687_4"
+    },
+    {
+        "studentId": 2,
+        "studentName": "Trần Thị B",
+        "date": "2025-12-13T11:34:23.947Z",
+        "points": 1,
+        "total": 10,
+        "type": "group",
+        "recordId": "1765625663947_2816_2"
+    },
+    {
+        "studentId": 4,
+        "studentName": "test",
+        "date": "2025-12-13T11:34:23.948Z",
+        "points": 1,
+        "total": 10,
+        "type": "group",
+        "recordId": "1765625663948_8033_4"
+    },
+    {
+        "studentId": 1,
+        "studentName": "Nguyễn Văn A",
+        "date": "2025-12-13T11:34:31.603Z",
+        "points": 2,
+        "total": 2,
+        "type": "group",
+        "recordId": "1765625671603_2552_1"
+    },
+    {
+        "studentId": 5,
+        "studentName": "a",
+        "date": "2025-12-13T11:34:31.604Z",
+        "points": 2,
+        "total": 34,
+        "type": "group",
+        "recordId": "1765625671604_8939_5"
+    },
+    {
+        "studentId": 1,
+        "studentName": "Nguyễn Văn A",
+        "date": "2025-12-13T11:34:34.906Z",
+        "points": -2,
+        "total": 0,
+        "type": "group",
+        "recordId": "1765625674906_7990_1"
+    },
+    {
+        "studentId": 5,
+        "studentName": "a",
+        "date": "2025-12-13T11:34:34.906Z",
+        "points": -2,
+        "total": 32,
+        "type": "group",
+        "recordId": "1765625674906_1022_5"
+    },
+    {
+        "studentId": 1,
+        "studentName": "Nguyễn Văn A",
+        "date": "2025-12-13T11:34:37.986Z",
+        "points": 2,
+        "total": 2,
+        "type": "group",
+        "recordId": "1765625677986_7094_1"
+    },
+    {
+        "studentId": 5,
+        "studentName": "a",
+        "date": "2025-12-13T11:34:37.987Z",
+        "points": 2,
+        "total": 34,
+        "type": "group",
+        "recordId": "1765625677987_8416_5"
+    },
+    {
+        "studentId": 2,
+        "studentName": "Trần Thị B",
+        "date": "2025-12-13T11:34:45.747Z",
+        "points": 1,
+        "total": 11,
+        "type": "group",
+        "recordId": "1765625685747_3669_2"
     }
 ]

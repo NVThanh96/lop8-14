@@ -601,6 +601,26 @@ body::before {
   margin-bottom: 25px;
 }
 
+@media (max-width: 768px) {
+  .left-section .header .greeting img{
+    display: none;
+  }
+  .devices-section-group {
+      display: block;
+  }
+  .members-card{
+    width: calc( 100% - 20px);
+    margin-top: 20px;
+  }
+  .btn-game{
+    padding: 8px 12px !important;
+  }
+  .icon-btn.btn-game.historyList{
+    width: 50px;
+    padding: 5px;
+  }
+}
+
 .devices-section-group .devices-section-left .imgBia {
   background: radial-gradient(circle, #5d2f0a 0%, #2d1b0a 100%);
   padding: 15px 30px;
@@ -1605,7 +1625,7 @@ input[type="range"]::-moz-range-thumb {
 /* Grid học sinh compact */
 .student-grid-compact {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 180px));
+  grid-template-columns: repeat(6, 1fr);
   gap: 15px;
   justify-content: center;
 }
@@ -2239,11 +2259,11 @@ input[type="number"] {
   }
 
   .devices-grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, 1fr) !important;
   }
 
   .stats-grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, 1fr) !important;
   }
 }
 

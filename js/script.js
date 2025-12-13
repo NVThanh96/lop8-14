@@ -3,9 +3,20 @@ let students = [];
 let levels = [];
 let rewardItems = [];
 let criteriaData = {};
-let listStudents = [];
 let groups = [];
 let historyLog = [];
+
+function saveToJsonWithFeedback() {
+  const btn = document.querySelector("#saveAllCriteriaBtn"); // nếu có nút lưu
+  if (btn) btn.disabled = true;
+
+  saveToJson();
+
+  setTimeout(() => {
+    if (btn) btn.disabled = false;
+    alert("Đã lưu tiêu chí thành công vào data.json!");
+  }, 800);
+}
 
 // ==================== LOAD TẤT CẢ DỮ LIỆU KHI KHỞI ĐỘNG ====================
 Promise.all([
@@ -13,12 +24,11 @@ Promise.all([
     r.ok
       ? r.json()
       : {
-          students: [],
-          levels: [],
-          rewardItems: [],
-          criteriaData: {},
-          listStudents: [],
-        }
+        students: [],
+        levels: [],
+        rewardItems: [],
+        criteriaData: {},
+      }
   ),
 
   fetch("json/history.json?t=" + Date.now()).then((r) =>
@@ -53,7 +63,6 @@ Promise.all([
     levels = mainData.levels || [];
     rewardItems = mainData.rewardItems || [];
     criteriaData = mainData.criteriaData || {};
-    listStudents = mainData.listStudents || students;
 
     // Load history.json
     historyLog = Array.isArray(hist) ? hist : [];
@@ -70,6 +79,8 @@ Promise.all([
     renderGroupSelects?.();
     updateHomeStats();
     renderHistory?.(); // nếu có
+
+    updateDeleteStudentSelect();
   })
   .catch((err) => {
     console.error("Lỗi khi load dữ liệu:", err);
@@ -83,19 +94,11 @@ Promise.all([
 
 // 1. Lưu học sinh + cấu hình → data.json
 function saveToJson() {
-  // Đồng bộ listStudents (nếu bạn vẫn dùng ở đâu đó)
-  listStudents = students.map((s) => ({
-    id: s.id,
-    name: s.name,
-    points: s.points,
-  }));
-
   const data = {
     students,
     levels,
     rewardItems,
     criteriaData,
-    listStudents,
     // Không có groups nữa
   };
 
@@ -229,10 +232,6 @@ function addToHistory(
   savePointHistory();
 }
 
-function saveCriteriaData() {
-  localStorage.setItem("criteriaData", JSON.stringify(criteriaData));
-}
-
 // Hàm reset nhóm
 function resetAllGroups() {
   if (confirm("Bạn có chắc chắn muốn xóa tất cả nhóm?")) {
@@ -308,12 +307,19 @@ function saveStudents() {
 }
 
 function getCurrentLevel(points) {
-  for (let i = levels.length - 1; i >= 0; i--) {
-    if (points >= levels[i].points) {
-      return levels[i];
+  if (!levels || levels.length === 0) {
+    return { name: "Không xác định", icon: "❓", color: "#999999" };
+  }
+
+  let current = levels[0];
+  for (const level of levels) {
+    if (points >= level.points) {
+      current = level;
+    } else {
+      break;
     }
   }
-  return levels[0];
+  return current;
 }
 
 // Hàm lấy màu cho điểm số: đỏ nếu âm, xanh lá nếu dương hoặc bằng 0
@@ -785,7 +791,7 @@ function renderStudents() {
 
   // Thay đổi layout thành grid 6 cột
   grid.style.display = "grid";
-  grid.style.gridTemplateColumns = "repeat(6, 1fr)";
+  // grid.style.gridTemplateColumns = "repeat(6, 1fr)";
   grid.style.gap = "20px";
   grid.innerHTML = "";
 
@@ -811,54 +817,41 @@ function renderStudents() {
     const studentCard = document.createElement("div");
     studentCard.className = "student-card";
     studentCard.innerHTML = `
-                <div class="student-name" style="margin-bottom:8px;">${
-                  student.name
-                }</div>
+                <div class="student-name" style="margin-bottom:8px;">${student.name
+      }</div>
                 <div class="character-level">
-                    <div class="character-image" style="background: ${
-                      currentLevel.color
-                    }">
-                        <img src="${getLevelImage(currentLevel.name)}" alt="${
-      currentLevel.name
-    }" style="width: 82px; height: 82px;" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                    <div class="character-image" style="background: ${currentLevel.color
+      }">
+                        <img src="${getLevelImage(currentLevel.name)}" alt="${currentLevel.name
+      }" style="width: 82px; height: 82px;" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
                         <span style="display: none;">${currentLevel.icon}</span>
                     </div>
                     <div class="level-name">${currentLevel.name}</div>
                 </div>
-                <div id="points-${
-                  student.id
-                }" style="font-size: 1rem; font-weight: bold; margin: 4px 0; text-align: center; color: ${pointColor};">${
-      student.points
-    } điểm</div>
+                <div id="points-${student.id
+      }" style="font-size: 1rem; font-weight: bold; margin: 4px 0; text-align: center; color: ${pointColor};">${student.points
+      } điểm</div>
                 <div class="progress-bar">
                     <div class="progress-fill" style="width: ${progress}%; background: ${getLevelGradient(
-      currentLevel.name
-    )}">
+        currentLevel.name
+      )}">
                         <div class="progress-text">${Math.round(
-                          progress
-                        )}%</div>
+        progress
+      )}%</div>
                     </div>
                 </div>
                 <div class="controls" style="gap:5px; display:flex; justify-content:center; align-items:center;">
-                    <button class="btn btn-add" onclick="applyAmount(${
-                      student.id
-                    }, true)" style="padding:5px 10px; font-size:0.85rem; order:1;">+</button>
-                    <input type="number" id="amount-${
-                      student.id
-                    }" value="1" min="1" step="1" style="width:75px; padding:5px 6px; border-radius:6px; border:1px solid #eee; text-align:center; font-size:0.85rem; order:2; cursor: text; background: white;" onfocus="console.log('Input focused:', ${
-      student.id
-    })" onchange="console.log('Input changed:', ${
-      student.id
-    }, this.value)" onclick="console.log('Input clicked:', ${
-      student.id
-    })" onkeydown="console.log('Input keydown:', ${
-      student.id
-    }, event.key)" onkeyup="console.log('Input keyup:', ${
-      student.id
-    }, event.key)" />
-                    <button class="btn btn-subtract" onclick="applyAmount(${
-                      student.id
-                    }, false)" style="padding:5px 10px; font-size:0.85rem; order:3;">-</button>
+                    <button class="btn btn-add" onclick="applyAmount(${student.id
+      }, true)" style="padding:5px 10px; font-size:0.85rem; order:1;">+</button>
+                    <input type="number" id="amount-${student.id
+      }" value="1" min="1" step="1" style="width:75px; padding:5px 6px; border-radius:6px; border:1px solid #eee; text-align:center; font-size:0.85rem; order:2; cursor: text; background: white;" onfocus="console.log('Input focused:', ${student.id
+      })" onchange="console.log('Input changed:', ${student.id
+      }, this.value)" onclick="console.log('Input clicked:', ${student.id
+      })" onkeydown="console.log('Input keydown:', ${student.id
+      }, event.key)" onkeyup="console.log('Input keyup:', ${student.id
+      }, event.key)" />
+                    <button class="btn btn-subtract" onclick="applyAmount(${student.id
+      }, false)" style="padding:5px 10px; font-size:0.85rem; order:3;">-</button>
                 </div>
             `;
 
@@ -1035,22 +1028,40 @@ function deleteStudent() {
 
 function updateDeleteStudentSelect() {
   const select = document.getElementById("deleteStudentSelect");
-  if (!select) return;
+  if (!select) {
+    console.error("Không tìm thấy #deleteStudentSelect");
+    return;
+  }
 
   const currentValue = select.value;
   select.innerHTML = '<option value="">-- Chọn học sinh cần xóa --</option>';
 
-  students.forEach((student) => {
+  if (students.length === 0) {
+    console.warn("Không có học sinh nào trong mảng students");
+    select.innerHTML += '<option value="">Chưa có học sinh</option>';
+    return;
+  }
+
+  if (students.length === 0) {
+    select.innerHTML += '<option value="">Chưa có học sinh</option>';
+    return;
+  }
+
+  // Sắp xếp theo tên (tiếng Việt)
+  const sortedStudents = [...students].sort((a, b) =>
+    a.name.localeCompare(b.name, "vi")
+  );
+
+  sortedStudents.forEach((student) => {
+    const currentLevel = getCurrentLevel(student.points);
     const option = document.createElement("option");
     option.value = student.id;
-    option.textContent = `${student.name} - ${
-      getCurrentLevel(student.points).name
-    } - ${student.points} điểm`;
+    option.textContent = `${student.name} - ${currentLevel.name} - ${student.points} điểm`;
     select.appendChild(option);
   });
 
-  // Giữ lại giá trị đã chọn nếu vẫn tồn tại
-  if (currentValue && students.find((s) => s.id === parseInt(currentValue))) {
+  // Giữ giá trị cũ nếu vẫn tồn tại
+  if (currentValue && students.find(s => s.id == currentValue)) {
     select.value = currentValue;
   }
 }
@@ -1174,13 +1185,11 @@ function buildThresholdEditor() {
       (lv, idx) => `
             <div style=\"display:flex; align-items:center; gap:8px; margin-bottom:8px;\">
                 <div style=\"width:110px; font-weight:700;\">${lv.name}</div>
-                <input type=\"number\" min=\"0\" value=\"${
-                  lv.points
-                }\" id=\"th-${idx}\" style=\"flex:1; padding:8px; border-radius:10px; border:1px solid #eee;\" />
+                <input type=\"number\" min=\"0\" value=\"${lv.points
+        }\" id=\"th-${idx}\" style=\"flex:1; padding:8px; border-radius:10px; border:1px solid #eee;\" />
                 <span style=\"color:#777;\">Hệ số:</span>
-                <input type=\"number\" step=\"0.25\" min=\"1\" value=\"${
-                  lv.multiplier || 1
-                }\" id=\"mul-${idx}\" style=\"width:90px; padding:8px; border-radius:10px; border:1px solid #eee;\" />
+                <input type=\"number\" step=\"0.25\" min=\"1\" value=\"${lv.multiplier || 1
+        }\" id=\"mul-${idx}\" style=\"width:90px; padding:8px; border-radius:10px; border:1px solid #eee;\" />
             </div>`
     )
     .join("");
@@ -1188,7 +1197,6 @@ function buildThresholdEditor() {
 
 // Hiển thị danh sách tiêu chí
 function loadCriteriaDisplay() {
-  console.log("loadCriteriaDisplay called");
   console.log("criteriaData:", criteriaData);
 
   // Hiển thị điểm cộng
@@ -1204,31 +1212,23 @@ function loadCriteriaDisplay() {
           (item, idx) => `
                     <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px; padding: 15px; background: white; border-radius: 8px; border: 1px solid #e0e0e0;">
                         <select onchange="updateCriteriaIcon('add', ${idx}, this.value)" style="width: 70px; padding: 8px; border-radius: 6px; border: 1px solid #ddd; font-size: 1.3rem; background: white;">
-                            <option value="⭐" ${
-                              item.icon === "⭐" ? "selected" : ""
-                            }>⭐</option>
-                            <option value="🏆" ${
-                              item.icon === "🏆" ? "selected" : ""
-                            }>🏆</option>
-                            <option value="🎯" ${
-                              item.icon === "🎯" ? "selected" : ""
-                            }>🎯</option>
-                            <option value="💡" ${
-                              item.icon === "💡" ? "selected" : ""
-                            }>💡</option>
-                            <option value="🔥" ${
-                              item.icon === "🔥" ? "selected" : ""
-                            }>🔥</option>
-                            <option value="⚡" ${
-                              item.icon === "⚡" ? "selected" : ""
-                            }>⚡</option>
+                            <option value="⭐" ${item.icon === "⭐" ? "selected" : ""
+            }>⭐</option>
+                            <option value="🏆" ${item.icon === "🏆" ? "selected" : ""
+            }>🏆</option>
+                            <option value="🎯" ${item.icon === "🎯" ? "selected" : ""
+            }>🎯</option>
+                            <option value="💡" ${item.icon === "💡" ? "selected" : ""
+            }>💡</option>
+                            <option value="🔥" ${item.icon === "🔥" ? "selected" : ""
+            }>🔥</option>
+                            <option value="⚡" ${item.icon === "⚡" ? "selected" : ""
+            }>⚡</option>
                         </select>
-                        <input type="text" onchange="updateCriteriaContent('add', ${idx}, this.value)" value="${
-            item.content
-          }" placeholder="Nhập tiêu chí..." style="flex: 1; padding: 10px; border-radius: 6px; border: 1px solid #ddd; font-size: 0.95rem;" />
-                        <input type="number" onchange="updateCriteriaPoints('add', ${idx}, this.value)" value="${
-            item.points
-          }" min="1" style="width: 70px; padding: 10px; border-radius: 6px; border: 1px solid #ddd; text-align: center; font-size: 0.95rem;" />
+                        <input type="text" onchange="updateCriteriaContent('add', ${idx}, this.value)" value="${item.content
+            }" placeholder="Nhập tiêu chí..." style="flex: 1; padding: 10px; border-radius: 6px; border: 1px solid #ddd; font-size: 0.95rem;" />
+                        <input type="number" onchange="updateCriteriaPoints('add', ${idx}, this.value)" value="${item.points
+            }" min="1" style="width: 70px; padding: 10px; border-radius: 6px; border: 1px solid #ddd; text-align: center; font-size: 0.95rem;" />
                         <button onclick="deleteCriteriaItem('add', ${idx})" style="background: #ff6b6b; color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 1.2rem;">×</button>
                     </div>
                 `
@@ -1251,31 +1251,23 @@ function loadCriteriaDisplay() {
           (item, idx) => `
                     <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px; padding: 15px; background: white; border-radius: 8px; border: 1px solid #e0e0e0;">
                         <select onchange="updateCriteriaIcon('subtract', ${idx}, this.value)" style="width: 70px; padding: 8px; border-radius: 6px; border: 1px solid #ddd; font-size: 1.3rem; background: white;">
-                            <option value="❌" ${
-                              item.icon === "❌" ? "selected" : ""
-                            }>❌</option>
-                            <option value="⚠️" ${
-                              item.icon === "⚠️" ? "selected" : ""
-                            }>⚠️</option>
-                            <option value="🚫" ${
-                              item.icon === "🚫" ? "selected" : ""
-                            }>🚫</option>
-                            <option value="💥" ${
-                              item.icon === "💥" ? "selected" : ""
-                            }>💥</option>
-                            <option value="🔥" ${
-                              item.icon === "🔥" ? "selected" : ""
-                            }>🔥</option>
-                            <option value="⚡" ${
-                              item.icon === "⚡" ? "selected" : ""
-                            }>⚡</option>
+                            <option value="❌" ${item.icon === "❌" ? "selected" : ""
+            }>❌</option>
+                            <option value="⚠️" ${item.icon === "⚠️" ? "selected" : ""
+            }>⚠️</option>
+                            <option value="🚫" ${item.icon === "🚫" ? "selected" : ""
+            }>🚫</option>
+                            <option value="💥" ${item.icon === "💥" ? "selected" : ""
+            }>💥</option>
+                            <option value="🔥" ${item.icon === "🔥" ? "selected" : ""
+            }>🔥</option>
+                            <option value="⚡" ${item.icon === "⚡" ? "selected" : ""
+            }>⚡</option>
                         </select>
-                        <input type="text" onchange="updateCriteriaContent('subtract', ${idx}, this.value)" value="${
-            item.content
-          }" placeholder="Nhập tiêu chí..." style="flex: 1; padding: 10px; border-radius: 6px; border: 1px solid #ddd; font-size: 0.95rem;" />
-                        <input type="number" onchange="updateCriteriaPoints('subtract', ${idx}, this.value)" value="${
-            item.points
-          }" min="1" style="width: 70px; padding: 10px; border-radius: 6px; border: 1px solid #ddd; text-align: center; font-size: 0.95rem;" />
+                        <input type="text" onchange="updateCriteriaContent('subtract', ${idx}, this.value)" value="${item.content
+            }" placeholder="Nhập tiêu chí..." style="flex: 1; padding: 10px; border-radius: 6px; border: 1px solid #ddd; font-size: 0.95rem;" />
+                        <input type="number" onchange="updateCriteriaPoints('subtract', ${idx}, this.value)" value="${item.points
+            }" min="1" style="width: 70px; padding: 10px; border-radius: 6px; border: 1px solid #ddd; text-align: center; font-size: 0.95rem;" />
                         <button onclick="deleteCriteriaItem('subtract', ${idx})" style="background: #ff6b6b; color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 1.2rem;">×</button>
                     </div>
                 `
@@ -1292,7 +1284,7 @@ function addNewCriteria(type) {
   } else {
     criteriaData.subtract.push({ icon: "❌", content: "", points: 1 });
   }
-  saveCriteriaData();
+  saveToJson();           // ← Đổi thành saveToJson()
   loadCriteriaDisplay();
 }
 
@@ -1300,7 +1292,7 @@ function addNewCriteria(type) {
 function deleteCriteriaItem(type, idx) {
   if (confirm("Bạn có chắc chắn muốn xóa tiêu chí này?")) {
     criteriaData[type].splice(idx, 1);
-    saveCriteriaData();
+    saveToJson();         // ← Đổi thành saveToJson()
     loadCriteriaDisplay();
   }
 }
@@ -1308,25 +1300,25 @@ function deleteCriteriaItem(type, idx) {
 // Cập nhật icon
 function updateCriteriaIcon(type, idx, value) {
   criteriaData[type][idx].icon = value;
-  saveCriteriaData();
+  saveToJson();           // ← Đổi thành saveToJson()
 }
 
 // Cập nhật nội dung
 function updateCriteriaContent(type, idx, value) {
   criteriaData[type][idx].content = value;
-  saveCriteriaData();
+  saveToJson();           // ← Đổi thành saveToJson()
 }
 
 // Cập nhật điểm
 function updateCriteriaPoints(type, idx, value) {
   criteriaData[type][idx].points = parseInt(value) || 1;
-  saveCriteriaData();
+  saveToJson();           // ← Đổi thành saveToJson()
 }
 
 // Lưu tất cả
 function saveAllCriteria() {
-  saveCriteriaData();
-  alert("✅ Đã lưu thành công!");
+  saveToJson();           // ← Đổi thành saveToJson()
+  alert("✅ Đã lưu thành công vào data.json!");
   loadCriteriaDisplay();
 }
 
@@ -1426,15 +1418,12 @@ function buildThresholdTable() {
     .map(
       (lv) => `
             <tr>
-                <td style="padding: 8px; border: 1px solid #dee2e6; font-weight: bold; color: ${
-                  lv.color
-                };">${lv.name}</td>
-                <td style="padding: 8px; border: 1px solid #dee2e6; text-align: center;">${
-                  lv.points
-                } điểm</td>
-                <td style="padding: 8px; border: 1px solid #dee2e6; text-align: center;">x${
-                  lv.multiplier || 1
-                }</td>
+                <td style="padding: 8px; border: 1px solid #dee2e6; font-weight: bold; color: ${lv.color
+        };">${lv.name}</td>
+                <td style="padding: 8px; border: 1px solid #dee2e6; text-align: center;">${lv.points
+        } điểm</td>
+                <td style="padding: 8px; border: 1px solid #dee2e6; text-align: center;">x${lv.multiplier || 1
+        }</td>
             </tr>
         `
     )
@@ -1479,31 +1468,25 @@ function renderRewardsGrid() {
     card.className = "student-card";
     card.innerHTML = `
                 <div class="student-name" style="margin-bottom:15px; text-align: center;">
-                    <img src="${getLevelImage(level.name)}" alt="${
-      level.name
-    }" style="width: 24px; height: 24px; vertical-align: middle; margin-right: 5px;" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
+                    <img src="${getLevelImage(level.name)}" alt="${level.name
+      }" style="width: 24px; height: 24px; vertical-align: middle; margin-right: 5px;" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
                     <span style="display: none;">${level.icon}</span>
                     ${level.name}
                 </div>
                 <div class="character-level">
-                    <div class="character-image" style="background: ${
-                      level.color
-                    }">
-                        ${
-                          reward.itemImage
-                            ? `<img src="${reward.itemImage}" alt="${reward.itemName}" style="width: 60px; height: 60px; object-fit: contain;" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">`
-                            : ""
-                        }
-                        <span style="${
-                          reward.itemImage ? "display: none;" : ""
-                        } font-size: 2.5rem;">🎁</span>
+                    <div class="character-image" style="background: ${level.color
+      }">
+                        ${reward.itemImage
+        ? `<img src="${reward.itemImage}" alt="${reward.itemName}" style="width: 60px; height: 60px; object-fit: contain;" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">`
+        : ""
+      }
+                        <span style="${reward.itemImage ? "display: none;" : ""
+      } font-size: 2.5rem;">🎁</span>
                     </div>
-                    <div class="level-name" style="margin-top: 15px; font-size: 1.1rem;">${
-                      reward.itemName
-                    }</div>
-                    <div style="font-size: 0.9rem; color: #666; margin-top: 8px; text-align: center;">${
-                      reward.description
-                    }</div>
+                    <div class="level-name" style="margin-top: 15px; font-size: 1.1rem;">${reward.itemName
+      }</div>
+                    <div style="font-size: 0.9rem; color: #666; margin-top: 8px; text-align: center;">${reward.description
+      }</div>
                 </div>
                 <div style="text-align: center; margin-top: 15px; padding: 12px; background: linear-gradient(135deg, rgba(255, 215, 0, 0.1), rgba(255, 182, 193, 0.1)); border-radius: 12px;">
                     <div style="font-size: 0.85rem; color: #666; margin-bottom: 5px;">Điểm yêu cầu:</div>
@@ -1550,15 +1533,12 @@ function buildRewardItemsEditor() {
     header.style.cssText =
       "display: flex; align-items: center; gap: 10px; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid #f0f0f0;";
     header.innerHTML = `
-                <img src="${getLevelImage(level.name)}" alt="${
-      level.name
-    }" style="width: 40px; height: 40px;" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
-                <span style="display: none; font-size: 1.8rem;">${
-                  level.icon
-                }</span>
-                <div style="font-weight: 800; color: #333; font-size: 1.2rem;">${
-                  level.name
-                }</div>
+                <img src="${getLevelImage(level.name)}" alt="${level.name
+      }" style="width: 40px; height: 40px;" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
+                <span style="display: none; font-size: 1.8rem;">${level.icon
+      }</span>
+                <div style="font-weight: 800; color: #333; font-size: 1.2rem;">${level.name
+      }</div>
             `;
 
     // Tên vật phẩm
@@ -1756,8 +1736,8 @@ function saveRewardItems() {
   // Thông báo thành công
   alert(
     "✅ Đã lưu thành công!\n\n" +
-      "Vật phẩm đã được cập nhật.\n" +
-      "Bạn có thể xem kết quả ngay bên dưới."
+    "Vật phẩm đã được cập nhật.\n" +
+    "Bạn có thể xem kết quả ngay bên dưới."
   );
 
   // Đóng editor
@@ -1819,38 +1799,33 @@ function renderExchangePointsTable() {
                         ${student.name}
                     </td>
                     <td style="padding: 12px 8px; text-align: center; border: 1px solid #eee; width: 100px;">
-                        <span style="background: ${
-                          currentLevel.color
-                        }; color: white; padding: 4px 12px; border-radius: 12px; font-size: 0.85rem; font-weight: 600;">
+                        <span style="background: ${currentLevel.color
+        }; color: white; padding: 4px 12px; border-radius: 12px; font-size: 0.85rem; font-weight: 600;">
                             ${currentLevel.name}
                         </span>
                     </td>
                     <td style="padding: 12px 8px; text-align: center; font-weight: bold; color: ${getPointColor(
-                      student.points
-                    )}; border: 1px solid #eee; width: 80px;">
+          student.points
+        )}; border: 1px solid #eee; width: 80px;">
                         ${student.points}
                     </td>
                     <td style="padding: 12px 8px; border: 1px solid #eee; width: 500px;">
-                        <div id="rewards-container-${
-                          student.id
-                        }" style="display: flex; flex-wrap: wrap; gap: 8px; padding: 8px; background: #f8f9fa; border-radius: 8px; max-height: 150px; overflow-y: auto;">
-                            ${
-                              availableRewards.length > 0
-                                ? availableRewards
-                                    .map(
-                                      ({ level, points, reward }) => `
+                        <div id="rewards-container-${student.id
+        }" style="display: flex; flex-wrap: wrap; gap: 8px; padding: 8px; background: #f8f9fa; border-radius: 8px; max-height: 150px; overflow-y: auto;">
+                            ${availableRewards.length > 0
+          ? availableRewards
+            .map(
+              ({ level, points, reward }) => `
                                 <label style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; cursor: pointer; border-radius: 6px; background: white; border: 1px solid #ddd; transition: all 0.2s; white-space: nowrap;" 
                                         onmouseover="this.style.background='#e9ecef'; this.style.borderColor='#FFA726'" 
                                         onmouseout="this.style.background='white'; this.style.borderColor='#ddd'">
                                     <input type="checkbox" 
-                                            id="reward-checkbox-${
-                                              student.id
-                                            }-${level}" 
+                                            id="reward-checkbox-${student.id
+                }-${level}" 
                                             value="${level}" 
                                             data-points="${points}"
-                                            onchange="updateExchangeInfo(${
-                                              student.id
-                                            })"
+                                            onchange="updateExchangeInfo(${student.id
+                })"
                                             style="width: 18px; height: 18px; cursor: pointer; flex-shrink: 0;">
                                     <span style="font-size: 0.85rem;">
                                         ${reward ? reward.itemName : level}
@@ -1858,10 +1833,10 @@ function renderExchangePointsTable() {
                                     </span>
                                 </label>
                             `
-                                    )
-                                    .join("")
-                                : '<div style="text-align: center; color: #999; font-size: 0.85rem; padding: 8px; width: 100%;">Không có quà để đổi</div>'
-                            }
+            )
+            .join("")
+          : '<div style="text-align: center; color: #999; font-size: 0.85rem; padding: 8px; width: 100%;">Không có quà để đổi</div>'
+        }
                         </div>
                     </td>
                     <td style="padding: 12px 8px; text-align: center; font-weight: bold; color: #FFA726; border: 1px solid #eee; width: 100px;"
@@ -2047,18 +2022,14 @@ function populateStudentSelection() {
   students.forEach((student) => {
     const isInGroup = studentsInGroups.has(student.id);
     const div = document.createElement("div");
-    div.style.cssText = `display: flex; align-items: center; gap: 10px; padding: 8px; border-radius: 8px; margin-bottom: 5px; background: ${
-      isInGroup ? "#ffebee" : "#f8f9fa"
-    }; opacity: ${isInGroup ? "0.6" : "1"};`;
+    div.style.cssText = `display: flex; align-items: center; gap: 10px; padding: 8px; border-radius: 8px; margin-bottom: 5px; background: ${isInGroup ? "#ffebee" : "#f8f9fa"
+      }; opacity: ${isInGroup ? "0.6" : "1"};`;
     div.innerHTML = `
-                <input type="checkbox" id="student-${student.id}" value="${
-      student.id
-    }" style="transform: scale(1.2);" ${isInGroup ? "disabled" : ""}>
-                <label for="student-${
-                  student.id
-                }" style="flex: 1; cursor: pointer; font-weight: 500; color: ${
-      isInGroup ? "#999" : "#333"
-    };">${student.name}${isInGroup ? " (đã có nhóm)" : ""}</label>
+                <input type="checkbox" id="student-${student.id}" value="${student.id
+      }" style="transform: scale(1.2);" ${isInGroup ? "disabled" : ""}>
+                <label for="student-${student.id
+      }" style="flex: 1; cursor: pointer; font-weight: 500; color: ${isInGroup ? "#999" : "#333"
+      };">${student.name}${isInGroup ? " (đã có nhóm)" : ""}</label>
             `;
     container.appendChild(div);
   });
@@ -2271,8 +2242,8 @@ function updateStats() {
   const avgPoints =
     totalStudents > 0
       ? Math.round(
-          students.reduce((sum, s) => sum + s.points, 0) / totalStudents
-        )
+        students.reduce((sum, s) => sum + s.points, 0) / totalStudents
+      )
       : 0;
   const excellentStudents = students.filter(
     (s) => getCurrentLevel(s.points).name === "Vua"
@@ -2280,11 +2251,11 @@ function updateStats() {
   const classProgress =
     totalStudents > 0
       ? Math.round(
-          students.reduce(
-            (sum, s) => sum + getProgressPercentage(s.points),
-            0
-          ) / totalStudents
-        )
+        students.reduce(
+          (sum, s) => sum + getProgressPercentage(s.points),
+          0
+        ) / totalStudents
+      )
       : 0;
 
   document.getElementById("totalStudents").textContent = totalStudents;
@@ -2305,8 +2276,8 @@ function renderMembersList() {
       (student, index) => `
             <div class="member">
                 <div class="member-avatar">${student.name
-                  .charAt(0)
-                  .toUpperCase()}</div>
+          .charAt(0)
+          .toUpperCase()}</div>
                 <div class="member-name">${student.name}</div>
             </div>
         `
@@ -2326,21 +2297,18 @@ function renderAllStudentsList() {
       const level = getCurrentLevel(student.points);
       return `
                 <div class="member" style="margin-bottom: 8px;">
-                    <div class="member-avatar" style="background: ${
-                      level.color
-                    };">
-                        <img src="${getLevelImage(level.name)}" alt="${
-        level.name
-      }" style="width: 30px; height: 30px;" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                    <div class="member-avatar" style="background: ${level.color
+        };">
+                        <img src="${getLevelImage(level.name)}" alt="${level.name
+        }" style="width: 30px; height: 30px;" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
                         <span style="display: none;">${level.icon}</span>
                     </div>
                     <div class="member-info">
                         <div class="member-name">${student.name}</div>
-                        <div class="member-level">${
-                          level.name
-                        } - <span style="color: ${getPointColor(
-        student.points
-      )}; font-weight: bold;">${student.points} điểm</span></div>
+                        <div class="member-level">${level.name
+        } - <span style="color: ${getPointColor(
+          student.points
+        )}; font-weight: bold;">${student.points} điểm</span></div>
                     </div>
                     <div class="member-rank-icon">${level.icon}</div>
                 </div>
@@ -2473,9 +2441,8 @@ function renderTopStudents() {
           <div style="font-size: 1.5rem; font-weight: bold; color: #FFA726; min-width: 30px; text-align: center;">
             ${index + 1}
           </div>
-          <div class="member-avatar" style="background: ${
-            level.color
-          }; overflow: hidden; position: relative;">
+          <div class="member-avatar" style="background: ${level.color
+        }; overflow: hidden; position: relative;">
             <img 
               src="${levelImage}" 
               alt="${level.name}" 
@@ -2488,9 +2455,8 @@ function renderTopStudents() {
           </div>
           <div class="member-info">
             <div class="member-name">${student.name}</div>
-            <div class="member-level">${level.name} - ${
-        student.points
-      } điểm</div>
+            <div class="member-level">${level.name} - ${student.points
+        } điểm</div>
           </div>
         </div>
       `;
@@ -2526,20 +2492,17 @@ function renderTopGroups() {
     .map(
       (group, index) => `
             <div class="member">
-                <div style="font-size: 1.5rem; font-weight: bold; color: #FFA726; min-width: 30px; text-align: center;">${
-                  index + 1
-                }</div>
-                <div class="member-avatar" style="background: ${
-                  group.groupLevel.color
-                }; overflow: hidden;">
+                <div style="font-size: 1.5rem; font-weight: bold; color: #FFA726; min-width: 30px; text-align: center;">${index + 1
+        }</div>
+                <div class="member-avatar" style="background: ${group.groupLevel.color
+        }; overflow: hidden;">
                     <img src="data/nhom4.png" alt="Nhóm 4" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
                     <span style="display: none;">👥</span>
                 </div>
                 <div class="member-info">
                     <div class="member-name">${group.name}</div>
-                    <div class="member-level">${
-                      group.groupLevel.name
-                    } - ${Math.round(group.points || 0)} điểm</div>
+                    <div class="member-level">${group.groupLevel.name
+        } - ${Math.round(group.points || 0)} điểm</div>
                 </div>
             </div>
         `
@@ -2598,64 +2561,47 @@ function renderStudentsCompact() {
     }
     studentCard.innerHTML = `
                 <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px;">
-                    ${
-                      isSelectMultipleMode
-                        ? `<input type="checkbox" id="student-select-${student.id}" class="student-select" style="width: 24px; height: 24px; cursor: pointer; transform: scale(1.3);" />`
-                        : ""
-                    }
-                    <div class="student-name-compact" style="flex: 1;">${
-                      student.name
-                    }</div>
+                    ${isSelectMultipleMode
+        ? `<input type="checkbox" id="student-select-${student.id}" class="student-select" style="width: 24px; height: 24px; cursor: pointer; transform: scale(1.3);" />`
+        : ""
+      }
+                    <div class="student-name-compact" style="flex: 1;">${student.name
+      }</div>
                 </div>
                 <div style="text-align: center; margin-bottom: 10px;">
-                    <img src="${getLevelImage(currentLevel.name)}" alt="${
-      currentLevel.name
-    }" style="width: 60px; height: 60px; border-radius: 50%; border: 3px solid ${
-      currentLevel.color
-    }; background: ${
-      currentLevel.color
-    }; padding: 5px; box-shadow: 0 4px 10px rgba(0,0,0,0.2);" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
-                    <span style="display: none; font-size: 2rem;">${
-                      currentLevel.icon
-                    }</span>
+                    <img src="${getLevelImage(currentLevel.name)}" alt="${currentLevel.name
+      }" style="width: 60px; height: 60px; border-radius: 50%; border: 3px solid ${currentLevel.color
+      }; background: ${currentLevel.color
+      }; padding: 5px; box-shadow: 0 4px 10px rgba(0,0,0,0.2);" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                    <span style="display: none; font-size: 2rem;">${currentLevel.icon
+      }</span>
                 </div>
-                <div class="student-level-compact" style="text-align: center; font-weight: bold; margin-bottom: 8px;">${
-                  currentLevel.name
-                }</div>
-                <div id="points-${
-                  student.id
-                }" style="font-size: 1.2rem; font-weight: bold; color: #FFA726; margin: 8px 0; text-align: center; ${
-      isSelectMultipleMode ? "cursor: pointer;" : ""
-    }" ${
-      isSelectMultipleMode
+                <div class="student-level-compact" style="text-align: center; font-weight: bold; margin-bottom: 8px;">${currentLevel.name
+      }</div>
+                <div id="points-${student.id
+      }" style="font-size: 1.2rem; font-weight: bold; color: #FFA726; margin: 8px 0; text-align: center; ${isSelectMultipleMode ? "cursor: pointer;" : ""
+      }" ${isSelectMultipleMode
         ? `onclick="if(event.target.closest('button') === null && event.target.closest('input') === null) { const cb = document.getElementById('student-select-${student.id}'); if(cb) { cb.checked = !cb.checked; cb.dispatchEvent(new Event('change')); } }"`
         : ""
-    }>${student.points} điểm</div>
-                <div style="width: 100%; height: 8px; background: #f0f0f0; border-radius: 4px; margin: 10px 0; ${
-                  isSelectMultipleMode ? "cursor: pointer;" : ""
-                }" ${
-      isSelectMultipleMode
+      }>${student.points} điểm</div>
+                <div style="width: 100%; height: 8px; background: #f0f0f0; border-radius: 4px; margin: 10px 0; ${isSelectMultipleMode ? "cursor: pointer;" : ""
+      }" ${isSelectMultipleMode
         ? `onclick="if(event.target.closest('button') === null && event.target.closest('input') === null) { const cb = document.getElementById('student-select-${student.id}'); if(cb) { cb.checked = !cb.checked; cb.dispatchEvent(new Event('change')); } }"`
         : ""
-    }>
+      }>
                     <div style="width: ${progress}%; height: 100%; background: ${getLevelGradient(
-      currentLevel.name
-    )}; border-radius: 4px;"></div>
+        currentLevel.name
+      )}; border-radius: 4px;"></div>
                 </div>
                 <div class="student-controls-compact">
-                    <input type="number" id="compact-amount-${
-                      student.id
-                    }" value="1" min="1" step="1" style="width: 70px; padding: 4px; border-radius: 6px; border: 1px solid #eee; text-align: center; font-size: 0.8rem; background: white; cursor: text;" onfocus="console.log('Input focused:', ${
-      student.id
-    })" onchange="console.log('Input changed:', ${
-      student.id
-    }, this.value)" onclick="console.log('Input clicked:', ${student.id})" />
-                    <button class="btn-compact subtract" onclick="applyCompactAmount(${
-                      student.id
-                    }, false)">−</button>
-                    <button class="btn-compact add" onclick="applyCompactAmount(${
-                      student.id
-                    }, true)">+</button>
+                    <input type="number" id="compact-amount-${student.id
+      }" value="1" min="1" step="1" style="width: 70px; padding: 4px; border-radius: 6px; border: 1px solid #eee; text-align: center; font-size: 0.8rem; background: white; cursor: text;" onfocus="console.log('Input focused:', ${student.id
+      })" onchange="console.log('Input changed:', ${student.id
+      }, this.value)" onclick="console.log('Input clicked:', ${student.id})" />
+                    <button class="btn-compact subtract" onclick="applyCompactAmount(${student.id
+      }, false)">−</button>
+                    <button class="btn-compact add" onclick="applyCompactAmount(${student.id
+      }, true)">+</button>
                 </div>
             `;
     grid.appendChild(studentCard);
@@ -2734,52 +2680,43 @@ function renderGroupsGrid() {
     }
 
     groupCard.innerHTML = `
-                    ${
-                      isSelectingGroups
-                        ? `
+                    ${isSelectingGroups
+        ? `
                     <div style="position: absolute; top: 10px; right: 10px;">
-                        <input type="checkbox" ${
-                          selectedGroups.has(group.id) ? "checked" : ""
-                        } 
+                        <input type="checkbox" ${selectedGroups.has(group.id) ? "checked" : ""
+        } 
                                 onchange="toggleGroupSelection(${group.id})" 
                                 onclick="event.stopPropagation();"
                                 style="width: 24px; height: 24px; cursor: pointer; transform: scale(1.3);" />
                     </div>
                     `
-                        : ""
-                    }
+        : ""
+      }
                 <div style="text-align: center; width: 100%;">
-                    <div style="font-size: 1.5rem; font-weight: bold; background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 15px;">Nhóm ${
-                      group.name
-                    }</div>
-                    <div id="group-points-${
-                      group.id
-                    }" style="font-size: 2rem; font-weight: 900; background: linear-gradient(135deg, #FFA726 0%, #FF6B9D 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 15px;">${Math.round(
-      group.points || 0
-    )} điểm</div>
+                    <div style="font-size: 1.5rem; font-weight: bold; background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 15px;">Nhóm ${group.name
+      }</div>
+                    <div id="group-points-${group.id
+      }" style="font-size: 2rem; font-weight: 900; background: linear-gradient(135deg, #FFA726 0%, #FF6B9D 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 15px;">${Math.round(
+        group.points || 0
+      )} điểm</div>
                     <div style="display: flex; justify-content: center; align-items: center; margin-top: 10px; margin-bottom: 15px;">
-                        <img src="${getLevelImage(groupLevel.name)}" alt="${
-      groupLevel.name
-    }" style="width: 78px; height: 78px; border-radius: 50%; border: 3px solid ${
-      groupLevel.color
-    }; background: ${
-      groupLevel.color
-    }; padding: 3px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); object-fit: cover;" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
-                        <span style="display: none; font-size: 3rem;">${
-                          groupLevel.icon
-                        }</span>
+                        <img src="${getLevelImage(groupLevel.name)}" alt="${groupLevel.name
+      }" style="width: 78px; height: 78px; border-radius: 50%; border: 3px solid ${groupLevel.color
+      }; background: ${groupLevel.color
+      }; padding: 3px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); object-fit: cover;" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                        <span style="display: none; font-size: 3rem;">${groupLevel.icon
+      }</span>
                 </div>
-                ${
-                  !isSelectingGroups
-                    ? `
+                ${!isSelectingGroups
+        ? `
                         <div style="display: flex; justify-content: center; align-items: center; gap: 8px; margin-top: 10px;">
                             <button class="btn-compact subtract" onclick="addPointsToGroup(-parseInt(document.getElementById('group-amount-${group.id}').value) || 1, ${group.id}); event.stopPropagation();" style="order: 1;">−</button>
                             <input type="number" id="group-amount-${group.id}" value="1" min="1" style="width: 90px; padding: 9px 8px; border-radius: 6px; border: 1px solid #eee; text-align: center; font-size: 1.125rem; order: 2;" onclick="event.stopPropagation();" />
                             <button class="btn-compact add" onclick="addPointsToGroup(parseInt(document.getElementById('group-amount-${group.id}').value) || 1, ${group.id}); event.stopPropagation();" style="order: 3;">+</button>
                     </div>
                                     `
-                    : ""
-                }
+        : ""
+      }
                                 </div>
             `;
     groupsGrid.appendChild(groupCard);
@@ -2930,30 +2867,24 @@ function renderEditGroupMembers() {
       return `
                 <div style="display:flex; align-items:center; justify-content:space-between; padding:12px; background:#f8f9fa; border-radius:8px; margin-bottom:10px;">
                     <div style="display:flex; align-items:center; gap:12px;">
-                        <div style="width:40px; height:40px; border-radius:50%; background:${
-                          currentLevel.color
-                        }; display:flex; align-items:center; justify-content:center; overflow:hidden;">
+                        <div style="width:40px; height:40px; border-radius:50%; background:${currentLevel.color
+        }; display:flex; align-items:center; justify-content:center; overflow:hidden;">
                             <img src="${getLevelImage(
-                              currentLevel.name
-                            )}" alt="${
-        currentLevel.name
-      }" style="width:100%; height:100%; object-fit:cover;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                            <span style="display:none; font-size:1.5rem;">${
-                              currentLevel.icon
-                            }</span>
+          currentLevel.name
+        )}" alt="${currentLevel.name
+        }" style="width:100%; height:100%; object-fit:cover;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                            <span style="display:none; font-size:1.5rem;">${currentLevel.icon
+        }</span>
                         </div>
                         <div>
-                            <div style="font-weight:600; color:#333;">${
-                              student.name
-                            }</div>
-                            <div style="font-size:0.85rem; color:#666;">${
-                              currentLevel.name
-                            } - ${student.points} điểm</div>
+                            <div style="font-weight:600; color:#333;">${student.name
+        }</div>
+                            <div style="font-size:0.85rem; color:#666;">${currentLevel.name
+        } - ${student.points} điểm</div>
                         </div>
                     </div>
-                    <button onclick="removeStudentFromGroupInEdit(${
-                      student.id
-                    })" style="background:#f44336; color:#fff; border:none; padding:8px 16px; border-radius:6px; cursor:pointer; font-size:0.9rem;">Xóa</button>
+                    <button onclick="removeStudentFromGroupInEdit(${student.id
+        })" style="background:#f44336; color:#fff; border:none; padding:8px 16px; border-radius:6px; cursor:pointer; font-size:0.9rem;">Xóa</button>
                 </div>
             `;
     })
@@ -2995,33 +2926,25 @@ function updateAddStudentDropdown() {
       const currentLevel = getCurrentLevel(student.points);
       return `
                 <div style="display:flex; align-items:center; gap:12px; padding:10px; background:white; border-radius:8px; margin-bottom:8px; border:1px solid #e0e0e0;">
-                    <input type="checkbox" id="add-student-${
-                      student.id
-                    }" value="${
-        student.id
-      }" style="transform: scale(1.2); cursor:pointer;">
-                    <label for="add-student-${
-                      student.id
-                    }" style="flex:1; cursor:pointer; display:flex; align-items:center; gap:10px;">
-                        <div style="width:35px; height:35px; border-radius:50%; background:${
-                          currentLevel.color
-                        }; display:flex; align-items:center; justify-content:center; overflow:hidden; flex-shrink:0;">
+                    <input type="checkbox" id="add-student-${student.id
+        }" value="${student.id
+        }" style="transform: scale(1.2); cursor:pointer;">
+                    <label for="add-student-${student.id
+        }" style="flex:1; cursor:pointer; display:flex; align-items:center; gap:10px;">
+                        <div style="width:35px; height:35px; border-radius:50%; background:${currentLevel.color
+        }; display:flex; align-items:center; justify-content:center; overflow:hidden; flex-shrink:0;">
                             <img src="${getLevelImage(
-                              currentLevel.name
-                            )}" alt="${
-        currentLevel.name
-      }" style="width:100%; height:100%; object-fit:cover;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                            <span style="display:none; font-size:1.2rem;">${
-                              currentLevel.icon
-                            }</span>
+          currentLevel.name
+        )}" alt="${currentLevel.name
+        }" style="width:100%; height:100%; object-fit:cover;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                            <span style="display:none; font-size:1.2rem;">${currentLevel.icon
+        }</span>
                         </div>
                         <div>
-                            <div style="font-weight:600; color:#333; font-size:0.95rem;">${
-                              student.name
-                            }</div>
-                            <div style="font-size:0.8rem; color:#666;">${
-                              currentLevel.name
-                            } - ${student.points} điểm</div>
+                            <div style="font-weight:600; color:#333; font-size:0.95rem;">${student.name
+        }</div>
+                            <div style="font-size:0.8rem; color:#666;">${currentLevel.name
+        } - ${student.points} điểm</div>
                         </div>
                     </label>
                 </div>
@@ -3111,61 +3034,65 @@ function saveEditGroup() {
 
 function renderGroupStudents(groupId) {
   const group = groups.find((g) => g.id === groupId);
-  if (!group) return;
+  if (!group) {
+    console.warn("Không tìm thấy nhóm với id:", groupId);
+    return;
+  }
 
   const groupStudentsContent = document.getElementById("groupStudentsContent");
-  if (!groupStudentsContent) return;
+  if (!groupStudentsContent) {
+    console.error("Không tìm thấy element #groupStudentsContent");
+    return;
+  }
 
   const members = students
     .filter((s) => group.studentIds.includes(s.id))
     .sort(sortStudentsByLastName);
 
   if (members.length === 0) {
-    groupStudentsContent.innerHTML =
-      '<div style="width:100%; text-align:center; padding:40px; color:#666;">Nhóm này chưa có học sinh nào</div>';
+    groupStudentsContent.innerHTML = `
+      <div style="width:100%; text-align:center; padding:40px; color:#666; font-size:1.1rem;">
+        Nhóm <strong>${group.name}</strong> chưa có học sinh nào
+      </div>`;
     return;
   }
 
-  // Hiển thị thẻ học sinh dạng card nhỏ với avatar và tên
-  groupStudentsContent.innerHTML = members
-    .map((student, index) => {
-      const currentLevel = getCurrentLevel(student.points);
-      // Xác định màu nền vòng tròn điểm: xanh khi điểm >= 0, đỏ khi điểm < 0
-      const badgeColor =
-        student.points >= 0
+  // Thêm tiêu đề nhóm (tùy chọn, đẹp hơn)
+  groupStudentsContent.innerHTML = `
+    <div style="width:100%; text-align:center; padding:16px 0; font-size:1.3rem; font-weight:600; color:#333; margin-bottom:16px;">
+      Nhóm: ${group.name} (${members.length} thành viên)
+    </div>
+    <div style="display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; padding: 10px;">
+      ${members
+      .map((student) => {
+        const currentLevel = getCurrentLevel(student.points);
+        const badgeColor = student.points >= 0
           ? "linear-gradient(135deg, #4caf50, #66bb6a)"
           : "linear-gradient(135deg, #f44336, #e57373)";
-      const badgeShadowColor =
-        student.points >= 0
+        const badgeShadowColor = student.points >= 0
           ? "rgba(76, 175, 80, 0.4)"
           : "rgba(244, 67, 54, 0.4)";
 
-      return `
-                <div style="position:relative; background:#fff; border-radius:15px; padding:19px; box-shadow:0 2px 8px rgba(0,0,0,0.1); width:150px; min-width:150px; height:220px; min-height:220px; text-align:center; display:flex; flex-direction:column; justify-content:space-between; transition:all 0.3s ease;">
-                    <div style="position:relative; display:inline-block; margin-bottom:12px; flex-shrink:0;">
-                        <div style="width:100px; height:100px; border-radius:50%; background:${
-                          currentLevel.color
-                        }; display:flex; align-items:center; justify-content:center; margin:0 auto; overflow:hidden; transition:transform 0.3s ease;">
-                            <img src="${getLevelImage(
-                              currentLevel.name
-                            )}" alt="${
-        currentLevel.name
-      }" style="width:100%; height:100%; object-fit:cover; transition:transform 0.3s ease;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                            <span style="display:none; font-size:3.75rem; align-items:center; justify-content:center;">${
-                              currentLevel.icon
-                            }</span>
-                        </div>
-                        <div style="position:absolute; top:-8px; right:-8px; background:${badgeColor}; color:#fff; border-radius:50%; width:42px; height:42px; display:flex; align-items:center; justify-content:center; font-size:1.1rem; font-weight:bold; border:3px solid #fff; box-shadow:0 2px 8px ${badgeShadowColor}; transition:all 0.3s ease; animation:pulse 2s ease-in-out infinite;">${
-        student.points
-      }</div>
-                    </div>
-                    <div style="font-size:1.125rem; font-weight:600; color:#333; word-wrap:break-word; overflow-wrap:break-word; line-height:1.4; padding-top:8px; flex:1; display:flex; align-items:center; justify-content:center;">${
-                      student.name
-                    }</div>
+        return `
+            <div style="position:relative; background:#fff; border-radius:15px; padding:19px; box-shadow:0 4px 12px rgba(0,0,0,0.15); width:160px; height:230px; text-align:center; display:flex; flex-direction:column; justify-content:space-between; transition:all 0.3s ease; hover:transform: scale(1.05);">
+              <div style="position:relative; display:inline-block; margin-bottom:12px;">
+                <div style="width:100px; height:100px; border-radius:50%; background:${currentLevel.color}; display:flex; align-items:center; justify-content:center; margin:0 auto; overflow:hidden;">
+                  <img src="${getLevelImage(currentLevel.name)}" alt="${currentLevel.name}"
+                       style="width:100%; height:100%; object-fit:cover;"
+                       onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                 </div>
-            `;
-    })
-    .join("");
+                <div style="position:absolute; top:-8px; right:-8px; background:${badgeColor}; color:#fff; border-radius:50%; width:42px; height:42px; display:flex; align-items:center; justify-content:center; font-size:1.1rem; font-weight:bold; border:3px solid #fff; box-shadow:0 2px 8px ${badgeShadowColor};">
+                  ${student.points}
+                </div>
+              </div>
+              <div style="font-size:1.1rem; font-weight:600; color:#333; word-break:break-word; padding:0 8px;">
+                ${student.name}
+              </div>
+            </div>`;
+      })
+      .join("")}
+    </div>
+  `;
 }
 
 // Tính năng bấm giờ
@@ -3721,9 +3648,8 @@ function generateReport() {
                         <div style="color: #666;">Tổng điểm cả lớp</div>
                     </div>
                     <div style="text-align: center; padding: 15px; background: #f8f9fa; border-radius: 10px;">
-                        <div style="font-size: 2rem; font-weight: bold; color: #FFA726;">${
-                          topStudent ? topStudent.name : "N/A"
-                        }</div>
+                        <div style="font-size: 2rem; font-weight: bold; color: #FFA726;">${topStudent ? topStudent.name : "N/A"
+    }</div>
                         <div style="color: #666;">Học sinh xuất sắc</div>
                     </div>
                 </div>
@@ -3741,43 +3667,37 @@ function generateReport() {
                         </thead>
                         <tbody>
                             ${reportStudents
-                              .map((student, index) => {
-                                const level = getCurrentLevel(student.points);
-                                const progress = Math.round(
-                                  getProgressPercentage(student.points)
-                                );
-                                return `
+      .map((student, index) => {
+        const level = getCurrentLevel(student.points);
+        const progress = Math.round(
+          getProgressPercentage(student.points)
+        );
+        return `
                                     <tr style="border-bottom: 1px solid #eee; transition: background 0.2s;" onmouseover="this.style.background='#f8f9fa'" onmouseout="this.style.background='white'">
-                                        <td style="padding: 10px 8px; text-align: center; font-weight: bold; color: #FFA726; border: 1px solid #eee;">${
-                                          index + 1
-                                        }</td>
-                                        <td style="padding: 10px 8px; font-weight: 600; border: 1px solid #eee;">${
-                                          student.name
-                                        }</td>
+                                        <td style="padding: 10px 8px; text-align: center; font-weight: bold; color: #FFA726; border: 1px solid #eee;">${index + 1
+          }</td>
+                                        <td style="padding: 10px 8px; font-weight: 600; border: 1px solid #eee;">${student.name
+          }</td>
                                         <td style="padding: 10px 8px; text-align: center; font-weight: bold; color: ${getPointColor(
-                                          student.points
-                                        )}; border: 1px solid #eee;">${
-                                  student.points
-                                }</td>
+            student.points
+          )}; border: 1px solid #eee;">${student.points
+          }</td>
                                         <td style="padding: 10px 8px; text-align: center; border: 1px solid #eee;">
-                                            <span style="background: ${
-                                              level.color
-                                            }; color: white; padding: 4px 12px; border-radius: 12px; font-size: 0.85rem; font-weight: 600;">${
-                                  level.name
-                                }</span>
+                                            <span style="background: ${level.color
+          }; color: white; padding: 4px 12px; border-radius: 12px; font-size: 0.85rem; font-weight: 600;">${level.name
+          }</span>
                                         </td>
                                         <td style="padding: 10px 8px; text-align: center; border: 1px solid #eee;">
                                             <div style="position: relative; width: 100%; height: 24px; background: #e9ecef; border-radius: 12px; overflow: hidden;">
-                                                <div style="position: absolute; left: 0; top: 0; height: 100%; width: ${progress}%; background: linear-gradient(90deg, ${
-                                  level.color
-                                }, #FFA726); transition: width 0.3s;"></div>
+                                                <div style="position: absolute; left: 0; top: 0; height: 100%; width: ${progress}%; background: linear-gradient(90deg, ${level.color
+          }, #FFA726); transition: width 0.3s;"></div>
                                                 <div style="position: absolute; width: 100%; text-align: center; line-height: 24px; font-size: 0.75rem; font-weight: bold; color: #333;">${progress}%</div>
                                         </div>
                                         </td>
                                     </tr>
                             `;
-                              })
-                              .join("")}
+      })
+      .join("")}
                         </tbody>
                     </table>
                 </div>
@@ -3900,16 +3820,15 @@ function exportToExcel() {
             <body>
                 <h2 style="text-align: center; color: #FFA726; margin-bottom: 10px;">BÁO CÁO ĐIỂM CHI TIẾT LỚP HỌC</h2>
                 <p style="text-align: center; margin-bottom: 5px;">Ngày xuất: ${new Date().toLocaleDateString(
-                  "vi-VN"
-                )}</p>
+    "vi-VN"
+  )}</p>
                 <p style="text-align: center; margin-bottom: 20px; font-style: italic;">
                     Từ ${startDate.toLocaleDateString(
-                      "vi-VN"
-                    )} đến ${endDate.toLocaleDateString("vi-VN")}
+    "vi-VN"
+  )} đến ${endDate.toLocaleDateString("vi-VN")}
                 </p>
-                <p style="font-weight: bold;">Tổng số học sinh: ${
-                  students.length
-                }</p>
+                <p style="font-weight: bold;">Tổng số học sinh: ${students.length
+    }</p>
                 <p style="font-weight: bold; margin-bottom: 20px;">Tổng điểm cả lớp: ${totalPoints}</p>
                 
                 <table border="1" cellspacing="0" cellpadding="6" style="width: 100%; border-collapse: collapse; font-size: 10pt;">
@@ -3918,67 +3837,61 @@ function exportToExcel() {
                             <th rowspan="2" style="text-align: center; padding: 10px; min-width: 40px; vertical-align: middle;">STT</th>
                             <th rowspan="2" style="text-align: left; padding: 10px; min-width: 150px; vertical-align: middle;">Tên học sinh</th>
                             ${dateList
-                              .map(
-                                (date) => `
+      .map(
+        (date) => `
                                 <th colspan="2" style="text-align: center; padding: 8px; min-width: 80px; background-color: #64B5F6;">
                                     ${date.toLocaleDateString("vi-VN", {
-                                      day: "2-digit",
-                                      month: "2-digit",
-                                    })}
+          day: "2-digit",
+          month: "2-digit",
+        })}
                                 </th>
                             `
-                              )
-                              .join("")}
+      )
+      .join("")}
                             <th rowspan="2" style="text-align: center; padding: 10px; min-width: 80px; background-color: #FFA726; vertical-align: middle;">Tổng điểm</th>
                             <th rowspan="2" style="text-align: center; padding: 10px; min-width: 100px; vertical-align: middle;">Cấp bậc</th>
                     </tr>
                         <tr style="background-color: #42A5F5; color: white; font-weight: bold;">
                             ${dateList
-                              .map(
-                                () => `
+      .map(
+        () => `
                                 <th style="text-align: center; padding: 6px; width: 50px; background-color: #4caf50;">+</th>
                                 <th style="text-align: center; padding: 6px; width: 50px; background-color: #f44336;">-</th>
                             `
-                              )
-                              .join("")}
+      )
+      .join("")}
                         </tr>
                     </thead>
                     <tbody>
                         ${reportData
-                          .map(
-                            (row) => `
+      .map(
+        (row) => `
                             <tr>
-                                <td style="text-align: center; padding: 6px;">${
-                                  row.stt
-                                }</td>
-                                <td style="padding: 6px; font-weight: 600;">${
-                                  row.name
-                                }</td>
+                                <td style="text-align: center; padding: 6px;">${row.stt
+          }</td>
+                                <td style="padding: 6px; font-weight: 600;">${row.name
+          }</td>
                                 ${dateList
-                                  .map((date) => {
-                                    const dateKey =
-                                      date.toLocaleDateString("vi-VN");
-                                    const added = row.dailyAdded[dateKey];
-                                    const subtracted =
-                                      row.dailySubtracted[dateKey];
-                                    return `
-                                        <td style="text-align: center; padding: 4px; color: #4caf50; font-weight: ${
-                                          added > 0 ? "bold" : "normal"
-                                        }; background-color: ${
-                                      added > 0 ? "#e8f5e9" : "white"
-                                    };">
+            .map((date) => {
+              const dateKey =
+                date.toLocaleDateString("vi-VN");
+              const added = row.dailyAdded[dateKey];
+              const subtracted =
+                row.dailySubtracted[dateKey];
+              return `
+                                        <td style="text-align: center; padding: 4px; color: #4caf50; font-weight: ${added > 0 ? "bold" : "normal"
+                }; background-color: ${added > 0 ? "#e8f5e9" : "white"
+                };">
                                             ${added > 0 ? added : ""}
                                         </td>
-                                        <td style="text-align: center; padding: 4px; color: #f44336; font-weight: ${
-                                          subtracted > 0 ? "bold" : "normal"
-                                        }; background-color: ${
-                                      subtracted > 0 ? "#ffebee" : "white"
-                                    };">
+                                        <td style="text-align: center; padding: 4px; color: #f44336; font-weight: ${subtracted > 0 ? "bold" : "normal"
+                }; background-color: ${subtracted > 0 ? "#ffebee" : "white"
+                };">
                                             ${subtracted > 0 ? subtracted : ""}
                                         </td>
                                     `;
-                                  })
-                                  .join("")}
+            })
+            .join("")}
                                 <td style="text-align: center; padding: 6px; font-weight: bold; background-color: #fff3cd;">
                                     ${row.total}
                                 </td>
@@ -3987,37 +3900,35 @@ function exportToExcel() {
                                 </td>
                         </tr>
                     `
-                          )
-                          .join("")}
+      )
+      .join("")}
                     </tbody>
                     <tfoot>
                         <tr style="background-color: #f8f9fa; font-weight: bold;">
                             <td colspan="2" style="text-align: right; padding: 10px;">Tổng mỗi ngày:</td>
                             ${dateList
-                              .map((date) => {
-                                const dateKey =
-                                  date.toLocaleDateString("vi-VN");
-                                const totalAdded = dailyTotalsAdded[dateKey];
-                                const totalSubtracted =
-                                  dailyTotalsSubtracted[dateKey];
-                                return `
+      .map((date) => {
+        const dateKey =
+          date.toLocaleDateString("vi-VN");
+        const totalAdded = dailyTotalsAdded[dateKey];
+        const totalSubtracted =
+          dailyTotalsSubtracted[dateKey];
+        return `
                                     <td style="text-align: center; padding: 8px; color: #4caf50; font-weight: bold; background-color: #e8f5e9;">
-                                        ${
-                                          totalAdded > 0
-                                            ? "+" + totalAdded
-                                            : "0"
-                                        }
+                                        ${totalAdded > 0
+            ? "+" + totalAdded
+            : "0"
+          }
                                     </td>
                                     <td style="text-align: center; padding: 8px; color: #f44336; font-weight: bold; background-color: #ffebee;">
-                                        ${
-                                          totalSubtracted > 0
-                                            ? "-" + totalSubtracted
-                                            : "0"
-                                        }
+                                        ${totalSubtracted > 0
+            ? "-" + totalSubtracted
+            : "0"
+          }
                                     </td>
                                 `;
-                              })
-                              .join("")}
+      })
+      .join("")}
                             <td style="text-align: center; padding: 10px; background-color: #FFA726; color: white; font-size: 12pt;">
                                 ${totalPoints}
                             </td>
@@ -4050,8 +3961,8 @@ function exportToExcel() {
     `bao_cao_chi_tiet_${startDate
       .toLocaleDateString("vi-VN")
       .replace(/\//g, "-")}_${endDate
-      .toLocaleDateString("vi-VN")
-      .replace(/\//g, "-")}.xls`
+        .toLocaleDateString("vi-VN")
+        .replace(/\//g, "-")}.xls`
   );
   link.style.visibility = "hidden";
   document.body.appendChild(link);
@@ -4199,8 +4110,7 @@ function importExcelData() {
           points = parseFloat(pointsValue);
           if (isNaN(points)) {
             errors.push(
-              `Dòng ${
-                i + 1
+              `Dòng ${i + 1
               }: "${studentName}" - Điểm không hợp lệ: ${pointsValue}`
             );
             errorCount++;
@@ -4302,8 +4212,8 @@ function importExcelData() {
       console.error("Lỗi đọc file Excel:", error);
       alert(
         "Lỗi khi đọc file Excel: " +
-          error.message +
-          "\n\nVui lòng kiểm tra lại file và thử lại."
+        error.message +
+        "\n\nVui lòng kiểm tra lại file và thử lại."
       );
     }
   };
@@ -4747,58 +4657,47 @@ function renderStudents() {
 
       card.innerHTML = `
                     <div class="student-header-compact">
-                        ${
-                          isSelectMultipleMode
-                            ? `<input type="checkbox" class="student-select" id="student-select-${student.id}" style="margin-right: 8px; width: 18px; height: 18px; cursor: pointer;" />`
-                            : ""
-                        }
+                        ${isSelectMultipleMode
+          ? `<input type="checkbox" class="student-select" id="student-select-${student.id}" style="margin-right: 8px; width: 18px; height: 18px; cursor: pointer;" />`
+          : ""
+        }
                         <div class="student-info-compact">
                             <div style="position:relative; display:inline-block; margin-bottom:8px; overflow:visible;">
-                                <div class="student-avatar-compact" style="background: ${
-                                  currentLevel.color
-                                }; width: 60px; height: 60px; border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto; overflow:hidden; position:relative;">
+                                <div class="student-avatar-compact" style="background: ${currentLevel.color
+        }; width: 60px; height: 60px; border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto; overflow:hidden; position:relative;">
                                     <img src="${getLevelImage(
-                                      currentLevel.name
-                                    )}" alt="${
-        currentLevel.name
-      }" style="width:100%; height:100%; object-fit:cover;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                                    <span style="display:none; font-size:2.5rem; align-items:center; justify-content:center;">${
-                                      currentLevel.icon
-                                    }</span>
+          currentLevel.name
+        )}" alt="${currentLevel.name
+        }" style="width:100%; height:100%; object-fit:cover;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                    <span style="display:none; font-size:2.5rem; align-items:center; justify-content:center;">${currentLevel.icon
+        }</span>
                                 </div>
-                                <div id="points-${
-                                  student.id
-                                }" style="position:absolute; top:-6px; right:-6px; background:${badgeColor}; color:#fff; border-radius:50%; width:32px; height:32px; display:flex; align-items:center; justify-content:center; font-size:0.95rem; font-weight:bold; border:2.5px solid #fff; box-shadow:0 2px 6px rgba(0,0,0,0.2); z-index:10; animation:characterFloat 3s ease-in-out infinite alternate;">${
-        student.points
-      }</div>
+                                <div id="points-${student.id
+        }" style="position:absolute; top:-6px; right:-6px; background:${badgeColor}; color:#fff; border-radius:50%; width:32px; height:32px; display:flex; align-items:center; justify-content:center; font-size:0.95rem; font-weight:bold; border:2.5px solid #fff; box-shadow:0 2px 6px rgba(0,0,0,0.2); z-index:10; animation:characterFloat 3s ease-in-out infinite alternate;">${student.points
+        }</div>
                             </div>
-                            <div class="student-name-compact" style="text-align: center; font-size: 1.2rem;">${
-                              student.name
-                            }</div>
+                            <div class="student-name-compact" style="text-align: center; font-size: 1.2rem;">${student.name
+        }</div>
                             <div class="student-level-compact">
                                 ${currentLevel.name}
                             </div>
                         </div>
                     </div>
-                    <div class="student-progress-compact" ${
-                      isSelectMultipleMode
-                        ? `onclick="if(event.target.closest('button') === null && event.target.closest('input') === null) { const cb = document.getElementById('student-select-${student.id}'); if(cb) { cb.checked = !cb.checked; cb.dispatchEvent(new Event('change')); } }" style="cursor: pointer;"`
-                        : ""
-                    }>
+                    <div class="student-progress-compact" ${isSelectMultipleMode
+          ? `onclick="if(event.target.closest('button') === null && event.target.closest('input') === null) { const cb = document.getElementById('student-select-${student.id}'); if(cb) { cb.checked = !cb.checked; cb.dispatchEvent(new Event('change')); } }" style="cursor: pointer;"`
+          : ""
+        }>
                         <div class="student-progress-fill-compact" style="width: ${progress}%; background: ${getLevelGradient(
-        currentLevel.name
-      )};"></div>
+          currentLevel.name
+        )};"></div>
                     </div>
                     <div class="student-controls-compact">
-                        <button class="btn-compact subtract" onclick="applyCompactAmount(${
-                          student.id
-                        }, false)">−</button>
-                        <input type="number" class="input-compact" id="compact-amount-${
-                          student.id
-                        }" value="1" min="1" />
-                        <button class="btn-compact add" onclick="applyCompactAmount(${
-                          student.id
-                        }, true)">+</button>
+                        <button class="btn-compact subtract" onclick="applyCompactAmount(${student.id
+        }, false)">−</button>
+                        <input type="number" class="input-compact" id="compact-amount-${student.id
+        }" value="1" min="1" />
+                        <button class="btn-compact add" onclick="applyCompactAmount(${student.id
+        }, true)">+</button>
                     </div>
                 `;
       grid.appendChild(card);
@@ -4806,7 +4705,7 @@ function renderStudents() {
   } else {
     // Chế độ thẻ lớn - 6 học sinh mỗi dòng
     grid.style.display = "grid";
-    grid.style.gridTemplateColumns = "repeat(6, 1fr)";
+    // grid.style.gridTemplateColumns = "repeat(6, 1fr)";
     grid.style.gap = "20px";
     grid.innerHTML = "";
 
@@ -4847,57 +4746,46 @@ function renderStudents() {
           : "linear-gradient(135deg, #f44336, #e57373)";
 
       studentCard.innerHTML = `
-                    ${
-                      isSelectMultipleMode
-                        ? `<div style="display: flex; justify-content: flex-end; margin-bottom: 6px;"><input type="checkbox" class="student-select" id="student-select-${student.id}" style="width: 16px; height: 16px; cursor: pointer;" /></div>`
-                        : ""
-                    }
-                    <div class="student-name" style="margin-bottom:8px;">${
-                      student.name
-                    }</div>
+                    ${isSelectMultipleMode
+          ? `<div style="display: flex; justify-content: flex-end; margin-bottom: 6px;"><input type="checkbox" class="student-select" id="student-select-${student.id}" style="width: 16px; height: 16px; cursor: pointer;" /></div>`
+          : ""
+        }
+                    <div class="student-name" style="margin-bottom:8px;">${student.name
+        }</div>
                     <div class="character-level" style="position:relative; overflow:visible;">
-                        <div class="character-image" style="background: ${
-                          currentLevel.color
-                        };">
+                        <div class="character-image" style="background: ${currentLevel.color
+        };">
                             <img src="${getLevelImage(
-                              currentLevel.name
-                            )}" alt="${
-        currentLevel.name
-      }" style="width: 82px; height: 82px;" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
-                            <span style="display: none;">${
-                              currentLevel.icon
-                            }</span>
+          currentLevel.name
+        )}" alt="${currentLevel.name
+        }" style="width: 82px; height: 82px;" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                            <span style="display: none;">${currentLevel.icon
+        }</span>
                         </div>
-                        <div id="points-${
-                          student.id
-                        }" style="position:absolute; top:2px; left:calc(50% + 38px); background:${badgeColor}; color:#fff; border-radius:50%; width:32px; height:32px; display:flex; align-items:center; justify-content:center; font-size:0.7rem; font-weight:bold; border:2px solid #fff; box-shadow:0 2px 6px rgba(0,0,0,0.2); z-index:10; animation: characterFloat 3s ease-in-out infinite alternate;">${
-        student.points
-      }</div>
+                        <div id="points-${student.id
+        }" style="position:absolute; top:2px; left:calc(50% + 38px); background:${badgeColor}; color:#fff; border-radius:50%; width:32px; height:32px; display:flex; align-items:center; justify-content:center; font-size:0.7rem; font-weight:bold; border:2px solid #fff; box-shadow:0 2px 6px rgba(0,0,0,0.2); z-index:10; animation: characterFloat 3s ease-in-out infinite alternate;">${student.points
+        }</div>
                         <div class="level-name">${currentLevel.name}</div>
                     </div>
-                    <div class="progress-bar" ${
-                      isSelectMultipleMode
-                        ? `onclick="if(event.target.closest('button') === null && event.target.closest('input') === null) { const cb = document.getElementById('student-select-${student.id}'); if(cb) { cb.checked = !cb.checked; cb.dispatchEvent(new Event('change')); } }" style="cursor: pointer;"`
-                        : ""
-                    }>
+                    <div class="progress-bar" ${isSelectMultipleMode
+          ? `onclick="if(event.target.closest('button') === null && event.target.closest('input') === null) { const cb = document.getElementById('student-select-${student.id}'); if(cb) { cb.checked = !cb.checked; cb.dispatchEvent(new Event('change')); } }" style="cursor: pointer;"`
+          : ""
+        }>
                         <div class="progress-fill" style="width: ${progress}%; background: ${getLevelGradient(
-        currentLevel.name
-      )}">
+          currentLevel.name
+        )}">
                             <div class="progress-text">${Math.round(
-                              progress
-                            )}%</div>
+          progress
+        )}%</div>
                         </div>
                     </div>
                     <div class="controls" style="gap:5px; display:flex; justify-content:center; align-items:center;">
-                        <button class="btn btn-subtract" onclick="applyAmount(${
-                          student.id
-                        }, false)" style="padding:5px 10px; font-size:0.85rem; order:1;">-</button>
-                        <input type="number" id="amount-${
-                          student.id
-                        }" value="1" min="1" step="1" style="width:75px; padding:6px 6px; border-radius:6px; border:1px solid #eee; text-align:center; font-size:0.95rem; order:2; cursor: text; background: white;" />
-                        <button class="btn btn-add" onclick="applyAmount(${
-                          student.id
-                        }, true)" style="padding:5px 10px; font-size:0.85rem; order:3;">+</button>
+                        <button class="btn btn-subtract" onclick="applyAmount(${student.id
+        }, false)" style="padding:5px 10px; font-size:0.85rem; order:1;">-</button>
+                        <input type="number" id="amount-${student.id
+        }" value="1" min="1" step="1" style="width:75px; padding:6px 6px; border-radius:6px; border:1px solid #eee; text-align:center; font-size:0.95rem; order:2; cursor: text; background: white;" />
+                        <button class="btn btn-add" onclick="applyAmount(${student.id
+        }, true)" style="padding:5px 10px; font-size:0.85rem; order:3;">+</button>
                     </div>
                 `;
       grid.appendChild(studentCard);
@@ -5114,7 +5002,7 @@ document.addEventListener("DOMContentLoaded", function () {
   renderGroupGrid();
   buildThresholdEditor();
   buildThresholdTable();
-  updateDeleteStudentSelect();
+  // updateDeleteStudentSelect();
   updateHomeStats();
   renderMembersList();
   renderGroupsGrid();
@@ -5245,8 +5133,8 @@ function renderHistory() {
           item.type === "group"
             ? "Nhóm"
             : item.type === "batch"
-            ? "Hàng loạt"
-            : "Cá nhân";
+              ? "Hàng loạt"
+              : "Cá nhân";
 
         const isChecked = selectedHistoryItems.has(recordId) ? "checked" : "";
 
